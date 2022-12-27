@@ -1,0 +1,9 @@
+[workspace]
+
+members = [
+    "cryp_alg",
+    "cryp_std",
+    "crypt",
+    "cryp_ec",
+]
+

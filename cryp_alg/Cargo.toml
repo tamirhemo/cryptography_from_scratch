@@ -1,0 +1,13 @@
+[package]
+name = "cryp_alg"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cryp_std = { path = "../cryp_std", default-features = false }
+
+[features]
+default = []
+std = ["cryp_std/std"]
