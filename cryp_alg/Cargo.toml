@@ -7,7 +7,8 @@ edition = "2021"
 
 [dependencies]
 cryp_std = { path = "../cryp_std", default-features = false }
+zeroize = { version = "1", default-features = false, features = ["zeroize_derive"] }
 
 [features]
 default = []
-std = ["cryp_std/std"]
+std = ["cryp_std/std", "zeroize/std"]

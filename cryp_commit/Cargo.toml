@@ -1,5 +1,5 @@
 [package]
-name = "crypt"
+name = "cryp_commit"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,5 +11,5 @@ cryp_ec = { path = "../cryp_ec", default-features = false }
 cryp_std = { path = "../cryp_std", default-features = false }
 
 [features]
-default = ["std"]
+default = []
 std = ["cryp_std/std", "cryp_ec/std", "cryp_alg/std"]
