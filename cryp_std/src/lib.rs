@@ -20,9 +20,5 @@ pub mod fmt {
 #[doc(hidden)]
 pub use std::*;
 
-#[doc(hidden)]
-pub use rand;
+pub mod rand;
 
-pub trait UniformRand: Sized {
-    fn rand<R: rand::RngCore + ?Sized>(rng: &mut R) -> Self;
-}

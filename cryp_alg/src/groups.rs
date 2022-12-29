@@ -5,7 +5,7 @@ use cryp_std::{
     hash::Hash,
     iter,
     ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign},
-    UniformRand,
+    rand::UniformRand,
 };
 
 use zeroize::Zeroize;
