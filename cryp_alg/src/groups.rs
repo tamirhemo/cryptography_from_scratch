@@ -1,7 +1,5 @@
 // A group (of prime order)
 
-use core::borrow::Borrow;
-
 use cryp_std::{
     fmt::{Debug, Display},
     hash::Hash,
@@ -47,14 +45,14 @@ pub trait Group:
 {
     type ScalarField: Field;
 
-    const NEUTRAL: Self;
+    const IDENTITY: Self;
 
-    fn zero() -> Self {
-        Self::NEUTRAL
+    fn identity() -> Self {
+        Self::IDENTITY
     }
 
-    fn is_zero(&self) -> bool {
-        *self == Self::NEUTRAL
+    fn is_identity(&self) -> bool {
+        *self == Self::IDENTITY
     }
 
     fn generator<R: Rng>(rng: Option<R>) -> Self;
@@ -76,6 +74,6 @@ pub trait Group:
         scalars
             .iter()
             .zip(bases.into_iter())
-            .fold(Self::NEUTRAL, |acc, (s, b)| acc + b.mul(s))
+            .fold(Self::IDENTITY, |acc, (s, b)| acc + b.mul(s))
     }
 }

@@ -13,7 +13,6 @@ pub trait ShortWeierstrass {
     const B: Self::Field;
 }
 
-
 /// Formulas from Faster addition and doubling on elliptic curves
 /// 
 /// https://hyperelliptic.org/EFD/g1p/auto-shortw-jacobian.html#addition-add-2007-bl
