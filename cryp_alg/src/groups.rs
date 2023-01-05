@@ -1,19 +1,26 @@
 // A group (of prime order)
 
+use core::borrow::Borrow;
+
 use cryp_std::{
     fmt::{Debug, Display},
     hash::Hash,
     iter,
-    ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign},
-    rand::UniformRand,
+    ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign, Neg},
+    rand::{Rng, UniformRand},
 };
 
-use zeroize::Zeroize;
+use crate::Field;
 
+//use zeroize::Zeroize;
+
+/// Interface for a group of prime order.
+///
 pub trait Group:
     'static
     + Copy
     + Clone
+    + PartialEq
     + Eq
     + Display
     + Debug
@@ -21,9 +28,9 @@ pub trait Group:
     + Sync
     + Sized
     + Hash
-    + Zeroize //  TODO: Consider removing this
     + UniformRand
     + Add<Self, Output = Self>
+    + Neg<Output = Self>
     + Sub<Self, Output = Self>
     + Mul<<Self as Group>::ScalarField, Output = Self>
     + AddAssign<Self>
@@ -38,5 +45,37 @@ pub trait Group:
     + iter::Sum<Self>
     + for<'a> iter::Sum<&'a Self>
 {
-    type ScalarField;
+    type ScalarField: Field;
+
+    const NEUTRAL: Self;
+
+    fn zero() -> Self {
+        Self::NEUTRAL
+    }
+
+    fn is_zero(&self) -> bool {
+        *self == Self::NEUTRAL
+    }
+
+    fn generator<R: Rng>(rng: Option<R>) -> Self;
+
+    fn double_in_place(&mut self);
+
+    fn double(&self) -> Self {
+        let mut res = *self;
+        res.double_in_place();
+        res
+    }
+
+    /// Performs multi-scalar multiplication of a tuple of bases and scalars.
+    ///
+    /// The bases and scalars are given as slices of the same length.
+    /// the function will panic if the slices are not of the same length.
+    fn multiscalar_mul(scalars: &[Self::ScalarField], bases: &[Self]) -> Self {
+        assert_eq!(scalars.len(), bases.len());
+        scalars
+            .iter()
+            .zip(bases.into_iter())
+            .fold(Self::NEUTRAL, |acc, (s, b)| acc + b.mul(s))
+    }
 }

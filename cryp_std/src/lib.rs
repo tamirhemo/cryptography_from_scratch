@@ -21,4 +21,3 @@ pub mod fmt {
 pub use std::*;
 
 pub mod rand;
-
