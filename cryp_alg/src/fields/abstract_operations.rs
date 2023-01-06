@@ -106,7 +106,19 @@ impl<S: PrimeFieldOperations> Field for F<S> {
     }
 }
 
+impl<S: PrimeFieldOperations> PrimeField for F<S> {
+    type BigInt = S::BigInt;
 
+    const MODULUS : Self::BigInt = S::MODULUS;
+
+    fn as_int(&self) -> Self::BigInt {
+        self.element
+    }
+
+    fn from_int(int: &Self::BigInt) -> Self {
+        Self::new(*int)
+    }
+}
 
 
 // ------------------------
