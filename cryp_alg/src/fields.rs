@@ -11,7 +11,11 @@ use crate::Integer;
 
 use zeroize::Zeroize;
 
-mod models;
+mod abstract_operations;
+mod montgomery;
+mod p25519;
+
+pub use abstract_operations::PrimeFieldOperations;
 
 /// The interface for a field
 pub trait Field:
@@ -25,7 +29,7 @@ pub trait Field:
     + Sync
     + Sized
     + Hash
-    + Zeroize //  TODO: Consider removing this
+    //+ Zeroize //  TODO: Consider removing this
     + UniformRand
     + Add<Self, Output = Self>
     + Sub<Self, Output = Self>
@@ -44,7 +48,7 @@ pub trait Field:
     + for<'a> SubAssign<&'a Self>
     + for<'a> MulAssign<&'a Self>
     + for<'a> DivAssign<&'a Self>
-    + core::iter::Sum<Self>
+    + iter::Sum<Self>
     + for<'a> iter::Sum<&'a Self>
     + iter::Product<Self>
     + for<'a> iter::Product<&'a Self>
@@ -55,10 +59,10 @@ pub trait Field:
     + From<u128>
 {
 
-    /// The additive identity of the field.
-    const ZERO: Self;
-    /// The multiplicative identity of the field.
-    const ONE: Self;
+    
+    fn zero() -> Self;
+    
+    fn one() -> Self;
 
     /// Computes the multiplicative inverse, if it exists.
     fn inverse(&self) -> Option<Self>;
@@ -76,7 +80,7 @@ pub trait Field:
     /// 
     /// Does not run in constant time.
     fn exp(&self, exp: u64) -> Self {
-        let mut result = Self::ONE;
+        let mut result = Self::one();
         let mut base = *self;
         let mut exp = exp;
 
@@ -89,14 +93,6 @@ pub trait Field:
         }
 
         result
-    }
-
-    fn zero() -> Self {
-        Self::ZERO
-    }
-
-    fn one() -> Self {
-        Self::ONE
     }
 }
 
@@ -112,10 +108,10 @@ pub trait PrimeField: Field {
     /// Safety: the number of bits representing each element must be constant.
     type BigInt: Integer;
 
-    const MODULUS_MINUS_ONE : Self;
+    const MODULUS : Self::BigInt;
 
     fn as_int(&self) -> Self::BigInt;
-    fn from_int(int : &Self::BigInt) -> Self;
+    fn from_int(int: &Self::BigInt) -> Self;
 }
 
 #[cfg(test)]
@@ -129,7 +125,6 @@ mod field_tests {
         /// Test that the additive identity is correct, and multiplicative zero is correct
         fn test_zero(num_tests: usize) {
             let zero = F::zero();
-            assert_eq!(zero, F::ZERO);
 
             let mut rng = StepRng::new(0, 1);
             for _ in 0..num_tests {
@@ -146,7 +141,6 @@ mod field_tests {
         /// Test that the multiplicative identity is correct
         fn test_one(num_tests: usize) {
             let one = F::one();
-            assert_eq!(one, F::ONE);
 
             let mut rng = StepRng::new(0, 1);
             for _ in 0..num_tests {

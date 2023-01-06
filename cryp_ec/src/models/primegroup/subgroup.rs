@@ -27,7 +27,7 @@ pub trait PrimeSubGroupConfig: CurveOperations + Sized + 'static + Eq + PartialE
     fn batch_generators(n: usize, rng: Option<impl Rng>) -> Vec<Self::Affine>;
 
     /// Scalar multiplication in constant time.
-    /// 
+    ///
     /// Default implementation uses the montgomery ladder algorithm.
     fn scalar_mul(base: &Self::Point, scalar: &Self::ScalarField) -> Self::Point {
         let base_int = scalar.as_int();
@@ -67,37 +67,35 @@ pub trait PrimeSubGroupConfig: CurveOperations + Sized + 'static + Eq + PartialE
         J: IntoIterator,
         J::Item: Borrow<Self::ScalarField>,
     {
-        let points = bases.into_iter()
-            .map(|b| Self::Point::from(*b.borrow()));
+        let points = bases.into_iter().map(|b| Self::Point::from(*b.borrow()));
         Self::msm(points, scalars)
     }
 }
 
-
-
-
-
-
-
-
 impl<T> PrimeGroupConfig for T
- where T: PrimeSubGroupConfig {
+where
+    T: PrimeSubGroupConfig,
+{
     type Public = T::Affine;
     type ScalarField = T::ScalarField;
 
-    fn is_valid(input : &Self::Public) -> bool {
+    fn is_valid(input: &Self::Public) -> bool {
         // An element is valid if input^MODULUS = identity
-        let power = &T::ScalarField::MODULUS_MINUS_ONE;
-        let base  = (*input).into();
+        let power = -T::ScalarField::one();
+        let base = (*input).into();
 
-        let mut base_power = T::scalar_mul(&base, power);
+        let mut base_power = T::scalar_mul(&base, &power);
         T::add_in_place(&mut base_power, &base);
 
         base_power == T::identity()
     }
 
-    fn as_public(input : &Self::Point) -> Option<Self::Public> {
+    fn as_public(input: &Self::Point) -> Option<Self::Public> {
         input.into_affine()
+    }
+
+    fn add_public_in_place(lhs: &mut Self::Point, rhs: &Self::Public) {
+        T::add_affine_in_place(lhs, rhs)
     }
 
     fn generator(rng: Option<impl Rng>) -> Self::Public {
@@ -121,11 +119,12 @@ impl<T> PrimeGroupConfig for T
     }
 
     fn msm<I, J>(bases: I, scalars: J) -> Self::Point
-        where
-            I: IntoIterator,
-            I::Item: Borrow<Self::Point>,
-            J: IntoIterator,
-            J::Item: Borrow<Self::ScalarField> {
+    where
+        I: IntoIterator,
+        I::Item: Borrow<Self::Point>,
+        J: IntoIterator,
+        J::Item: Borrow<Self::ScalarField>,
+    {
         T::msm(bases, scalars)
     }
 
@@ -139,4 +138,3 @@ impl<T> PrimeGroupConfig for T
         T::msm_pub(bases, scalars)
     }
 }
-

@@ -7,11 +7,3 @@ mod groups;
 pub use biginteger::Integer;
 pub use fields::{Field, PrimeField};
 pub use groups::{Group, PrimeGroup};
-
-pub trait Zero {
-    fn zero() -> Self;
-}
-
-pub trait One {
-    fn one() -> Self;
-}

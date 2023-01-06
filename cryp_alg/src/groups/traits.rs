@@ -60,6 +60,14 @@ pub trait PrimeGroup:
     Group
     + for<'a> Mul<&'a <Self as PrimeGroup>::ScalarField, Output = Self>
     + for<'a> MulAssign<&'a <Self as PrimeGroup>::ScalarField>
+    + Add<Self::Public, Output = Self>
+    + AddAssign<Self::Public>
+    + Sub<Self::Public, Output = Self>
+    + SubAssign<Self::Public>
+    + for<'a> Add<&'a Self::Public, Output = Self>
+    + for<'a> AddAssign<&'a Self::Public>
+    + for<'a> Sub<&'a Self::Public, Output = Self>
+    + for<'a> SubAssign<&'a Self::Public>
 {
     type ScalarField: PrimeField;
 
@@ -80,13 +88,15 @@ pub trait PrimeGroup:
         + Sized
         + 'static
         + Into<Self>
-        + for<'a> Mul<&'a <Self as PrimeGroup>::ScalarField, Output = Self>;
-        
+        + for<'a> Mul<&'a <Self as PrimeGroup>::ScalarField, Output = Self>
+        + Add<Self::Public, Output = Self>
+        + for<'a> Add<&'a Self::Public, Output = Self>;
+
     /// Gives a generator for the group.
     fn generator(rng: Option<impl Rng>) -> Self::Public;
 
     /// Verifies that a given `Public` type is a valid element of the group
-    fn is_valid(input : &Self::Public) -> bool;
+    fn is_valid(input: &Self::Public) -> bool;
 
     /// Attempts to convert an an element of the group into the `Public` type.
     fn as_public(&self) -> Option<Self::Public>;
@@ -100,9 +110,9 @@ pub trait PrimeGroup:
     /// Multi-scalar multiplication with a vector of secret scalars.
     ///
     /// The iteretors should be of the same length (this is not checked).
-    /// 
+    ///
     /// Users should transform the output of this function into a `Self::Public` type before
-    /// sending it to other parties. 
+    /// sending it to other parties.
     fn msm<I, J>(bases: I, scalars: J) -> Self
     where
         I: IntoIterator,

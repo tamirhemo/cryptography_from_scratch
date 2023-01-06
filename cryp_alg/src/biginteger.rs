@@ -1,6 +1,6 @@
 mod limb;
 
-use limb::Limb;
+pub use limb::Limb;
 
 pub trait Integer {
     fn into_bits_be(&self) -> &[bool];

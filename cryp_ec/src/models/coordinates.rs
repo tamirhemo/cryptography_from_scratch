@@ -4,8 +4,7 @@ use cryp_std::hash::{Hash, Hasher};
 
 /// A trait for the coordinates of a point on an elliptic curve.
 pub trait Coordinates:
-    PartialEq + Eq + Display + Clone + Hash + Copy + Sized + Send + Sync + Debug
-    + From<Self::Affine>
+    PartialEq + Eq + Display + Clone + Hash + Copy + Sized + Send + Sync + Debug + From<Self::Affine>
 {
     type Field;
     type Affine;

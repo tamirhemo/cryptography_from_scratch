@@ -16,19 +16,26 @@ pub use subgroup::PrimeSubGroupConfig;
 ///
 /// The group can come from a prime order subgroup (as is most common) or even
 /// be a quotient group such as in the case of Ristretto.
-pub trait PrimeGroupConfig: CurveOperations + Sized + 'static + PartialEq + Eq  {
-    type Public : Into<Self::Point> + Send + Sync + Hash + PartialEq + Eq + Clone + Copy;
+pub trait PrimeGroupConfig: CurveOperations + Sized + 'static + PartialEq + Eq {
+    type Public: Into<Self::Point> + Send + Sync + Hash + PartialEq + Eq + Clone + Copy;
     /// Finite field with the same order as the subgroup.
     type ScalarField: PrimeField;
 
     /// Gives a generator of the group.
     fn generator(rng: Option<impl Rng>) -> Self::Public;
+
     /// Gives a random element of the group.
     fn rand(rng: impl Rng) -> Self::Public;
+
     /// Verifies that the `Public` element is valid group element.
-    fn is_valid(input : &Self::Public) -> bool;
+    fn is_valid(input: &Self::Public) -> bool;
+
     /// Attempts to convert a `Point` element to a `Public`.
-    fn as_public(input : &Self::Point) -> Option<Self::Public>;
+    fn as_public(input: &Self::Point) -> Option<Self::Public>;
+
+    /// Adding a point to a point in the public representation.
+    fn add_public_in_place(lhs: &mut Self::Point, rhs: &Self::Public);
+
     /// Gives a vector of generators of the group of size `n`.
     ///
     /// The generators should be independent in the sense that the mutual
@@ -36,7 +43,7 @@ pub trait PrimeGroupConfig: CurveOperations + Sized + 'static + PartialEq + Eq  
     fn batch_generators(n: usize, rng: Option<impl Rng>) -> Vec<Self::Public>;
 
     /// Scalar multiplication in constant time.
-    /// 
+    ///
     /// Default implementation uses the montgomery ladder algorithm.
     fn scalar_mul(base: &Self::Point, scalar: &Self::ScalarField) -> Self::Point {
         let base_int = scalar.as_int();
@@ -87,7 +94,7 @@ pub struct PublicEC<P: PrimeGroupConfig> {
 impl<P: PrimeGroupConfig> From<PublicEC<P>> for GroupEC<P> {
     fn from(public: PublicEC<P>) -> Self {
         Self {
-            point: public.into_point()
+            point: public.into_point(),
         }
     }
 }
@@ -114,7 +121,7 @@ impl<P: PrimeGroupConfig> PrimeGroup for GroupEC<P> {
     type ScalarField = P::ScalarField;
     type Public = PublicEC<P>;
 
-    fn is_valid(input : &Self::Public) -> bool {
+    fn is_valid(input: &Self::Public) -> bool {
         P::is_valid(&input.point)
     }
 
@@ -138,11 +145,12 @@ impl<P: PrimeGroupConfig> PrimeGroup for GroupEC<P> {
         I: IntoIterator,
         I::Item: Borrow<Self::Public>,
         J: IntoIterator,
-        J::Item: Borrow<<Self as PrimeGroup>::ScalarField> {
+        J::Item: Borrow<<Self as PrimeGroup>::ScalarField>,
+    {
         let bases = bases.into_iter().map(|b| b.borrow().point);
         let point = P::msm_pub(bases, scalars);
         Self::new(point)
-        }
+    }
 }
 
 impl<P: PrimeGroupConfig> PublicEC<P> {
@@ -154,7 +162,6 @@ impl<P: PrimeGroupConfig> PublicEC<P> {
         self.point.into()
     }
 }
-
 
 // -----------------------------------------
 
@@ -198,21 +205,21 @@ impl<P: PrimeGroupConfig> Clone for GroupEC<P> {
     }
 }
 
-impl<P : PrimeGroupConfig> Hash for PublicEC<P> {
+impl<P: PrimeGroupConfig> Hash for PublicEC<P> {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
         self.point.hash(state);
     }
 }
 
-impl<P : PrimeGroupConfig> PartialEq for PublicEC<P> {
+impl<P: PrimeGroupConfig> PartialEq for PublicEC<P> {
     fn eq(&self, other: &Self) -> bool {
         self.point == other.point
     }
 }
 
-impl<P : PrimeGroupConfig> Eq for PublicEC<P> {}
+impl<P: PrimeGroupConfig> Eq for PublicEC<P> {}
 
-impl<P : PrimeGroupConfig> Clone for PublicEC<P> {
+impl<P: PrimeGroupConfig> Clone for PublicEC<P> {
     fn clone(&self) -> Self {
         Self {
             point: self.point.clone(),
@@ -220,7 +227,7 @@ impl<P : PrimeGroupConfig> Clone for PublicEC<P> {
     }
 }
 
-impl<P : PrimeGroupConfig> Copy for PublicEC<P> {}
+impl<P: PrimeGroupConfig> Copy for PublicEC<P> {}
 
 // -----------------------------------------
 
@@ -344,7 +351,6 @@ impl<'a, P: PrimeGroupConfig> iter::Sum<&'a GroupEC<P>> for GroupEC<P> {
     }
 }
 
-
 impl<P: PrimeGroupConfig> Mul<&P::ScalarField> for GroupEC<P> {
     type Output = GroupEC<P>;
 
@@ -357,7 +363,7 @@ impl<P: PrimeGroupConfig> Mul<&P::ScalarField> for GroupEC<P> {
 
 impl<P: PrimeGroupConfig> MulAssign<&P::ScalarField> for GroupEC<P> {
     fn mul_assign(&mut self, other: &P::ScalarField) {
-        let res = *self*other;
+        let res = *self * other;
         *self = res;
     }
 }
@@ -382,8 +388,108 @@ impl<P: PrimeGroupConfig> Mul<&P::ScalarField> for &PublicEC<P> {
     }
 }
 
+impl<P: PrimeGroupConfig> Add<&PublicEC<P>> for PublicEC<P> {
+    type Output = GroupEC<P>;
 
+    fn add(self, other: &PublicEC<P>) -> GroupEC<P> {
+        let mut res = self.into();
+        res += other;
+        res
+    }
+}
 
+impl<P: PrimeGroupConfig> Add<PublicEC<P>> for PublicEC<P> {
+    type Output = GroupEC<P>;
 
+    fn add(self, other: PublicEC<P>) -> GroupEC<P> {
+        let mut res = self.into();
+        res += other;
+        res
+    }
+}
 
+impl<P: PrimeGroupConfig> AddAssign<&PublicEC<P>> for GroupEC<P>
+where
+    P: PrimeGroupConfig,
+{
+    fn add_assign(&mut self, other: &PublicEC<P>) {
+        P::add_public_in_place(&mut self.point, &other.point);
+    }
+}
 
+impl<P: PrimeGroupConfig> Add<&PublicEC<P>> for GroupEC<P>
+where
+    P: PrimeGroupConfig,
+{
+    type Output = GroupEC<P>;
+
+    fn add(mut self, other: &PublicEC<P>) -> GroupEC<P> {
+        self += other;
+        self
+    }
+}
+
+impl<P: PrimeGroupConfig> AddAssign<PublicEC<P>> for GroupEC<P>
+where
+    P: PrimeGroupConfig,
+{
+    fn add_assign(&mut self, other: PublicEC<P>) {
+        *self += &other;
+    }
+}
+
+impl<P: PrimeGroupConfig> Add<PublicEC<P>> for GroupEC<P>
+where
+    P: PrimeGroupConfig,
+{
+    type Output = GroupEC<P>;
+
+    fn add(mut self, other: PublicEC<P>) -> GroupEC<P> {
+        self += other;
+        self
+    }
+}
+
+impl<P: PrimeGroupConfig> SubAssign<&PublicEC<P>> for GroupEC<P>
+where
+    P: PrimeGroupConfig,
+{
+    fn sub_assign(&mut self, other: &PublicEC<P>) {
+        P::neg_in_place(&mut self.point);
+        *self += other;
+        P::neg_in_place(&mut self.point);
+    }
+}
+
+impl<P: PrimeGroupConfig> Sub<&PublicEC<P>> for GroupEC<P>
+where
+    P: PrimeGroupConfig,
+{
+    type Output = GroupEC<P>;
+
+    fn sub(mut self, other: &PublicEC<P>) -> GroupEC<P> {
+        self -= other;
+        self
+    }
+}
+
+impl<P: PrimeGroupConfig> SubAssign<PublicEC<P>> for GroupEC<P>
+where
+    P: PrimeGroupConfig,
+{
+    fn sub_assign(&mut self, other: PublicEC<P>) {
+        *self -= &other;
+    }
+}
+
+impl<P: PrimeGroupConfig> Sub<PublicEC<P>> for GroupEC<P>
+where
+    P: PrimeGroupConfig,
+{
+    type Output = GroupEC<P>;
+
+    fn sub(mut self, other: PublicEC<P>) -> GroupEC<P> {
+        self -= other;
+        self
+    }
+}
