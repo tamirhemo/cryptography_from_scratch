@@ -6,7 +6,7 @@ use cryp_std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     rand::{
         distributions::{Distribution, Standard},
-        Rng,
+        Rng, UniformRand,
     },
 };
 
@@ -21,16 +21,17 @@ pub trait PrimeFieldOperations: 'static + Debug {
         + Hash
         + Debug
         + Display
-        + From<u16>
+        + PartialEq
+        + Eq
         + From<u32>
-        + From<u64>
-        + From<u128>
-        + From<u8>
+        //+ From<u64>
+        //+ From<u128>
+        //+ From<u8>
         + Send
         + Sync
         + 'static;
 
-    const MODULUS : Self::BigInt;
+    const MODULUS: Self::BigInt;
 
     /// The zero element of the field.
     fn zero() -> Self::BigInt;
@@ -44,8 +45,8 @@ pub trait PrimeFieldOperations: 'static + Debug {
     /// Checks if the element is zero.
     fn is_zero(element: &Self::BigInt) -> bool;
 
-    // Generate a random element of the field.
-    fn sample<R: Rng + ?Sized>(rng: &mut R) -> Self::BigInt;
+    /// A random element of the field.
+    fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self::BigInt;
 
     /// Checks if two elements are equal.
     ///
@@ -60,8 +61,14 @@ pub trait PrimeFieldOperations: 'static + Debug {
     /// Addition of two elements in place.
     fn add_assign(lhs: &mut Self::BigInt, other: &Self::BigInt);
 
+    fn sub_assign(lhs: &mut Self::BigInt, other: &Self::BigInt);
+
     /// Negation of an element.
-    fn negation(element: &Self::BigInt) -> Self::BigInt;
+    fn negation(element: &Self::BigInt) -> Self::BigInt {
+        let mut res = Self::zero();
+        Self::sub_assign(&mut res, element);
+        res
+    }
 
     /// Multiplication of two elements in place.
     fn mul_assign(lhs: &mut Self::BigInt, other: &Self::BigInt);
@@ -109,7 +116,7 @@ impl<S: PrimeFieldOperations> Field for F<S> {
 impl<S: PrimeFieldOperations> PrimeField for F<S> {
     type BigInt = S::BigInt;
 
-    const MODULUS : Self::BigInt = S::MODULUS;
+    const MODULUS: Self::BigInt = S::MODULUS;
 
     fn as_int(&self) -> Self::BigInt {
         self.element
@@ -119,7 +126,6 @@ impl<S: PrimeFieldOperations> PrimeField for F<S> {
         Self::new(*int)
     }
 }
-
 
 // ------------------------
 // Operations
@@ -159,9 +165,7 @@ impl<S: PrimeFieldOperations> Add<&F<S>> for F<S> {
 
 impl<S: PrimeFieldOperations> SubAssign<&F<S>> for F<S> {
     fn sub_assign(&mut self, other: &F<S>) {
-        let mut negated = other.element;
-        S::negation(&mut negated);
-        S::add_assign(&mut self.element, &negated);
+        S::sub_assign(&mut self.element, &other.element);
     }
 }
 
@@ -326,10 +330,11 @@ impl<S: PrimeFieldOperations> cryp_std::fmt::Display for F<S> {
 
 // ------------
 // random field element
+// CAREFUL
 
-impl<S: PrimeFieldOperations> Distribution<F<S>> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> F<S> {
-        F::new(S::sample(rng))
+impl<S: PrimeFieldOperations> UniformRand for F<S> {
+    fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self {
+        F::new(S::rand(rng))
     }
 }
 
@@ -349,4 +354,4 @@ macro_rules! impl_from {
     };
 }
 
-impl_from!(u8, u16, u32, u64, u128);
+impl_from!(u32);

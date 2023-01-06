@@ -52,11 +52,7 @@ pub trait Field:
     + for<'a> iter::Sum<&'a Self>
     + iter::Product<Self>
     + for<'a> iter::Product<&'a Self>
-    + From<u8>
-    + From<u16>
     + From<u32>
-    + From<u64>
-    + From<u128>
 {
 
     
@@ -106,9 +102,9 @@ pub trait PrimeField: Field {
     /// The underlying representation as an integer
     ///
     /// Safety: the number of bits representing each element must be constant.
-    type BigInt: Integer;
+    type BigInt: Integer + Debug + PartialEq + Eq;
 
-    const MODULUS : Self::BigInt;
+    const MODULUS: Self::BigInt;
 
     fn as_int(&self) -> Self::BigInt;
     fn from_int(int: &Self::BigInt) -> Self;
@@ -176,15 +172,15 @@ mod field_tests {
         }
 
         /// Test that the conversion from u128 to F is homomorphic
-        fn test_from_u64(num_tests: usize) {
+        fn test_from_u32(num_tests: usize) {
             let mut rng = StepRng::new(0, 1);
 
             for _ in 0..num_tests {
-                let a = u64::rand(&mut rng);
-                let b = u64::rand(&mut rng);
+                let a = u32::rand(&mut rng);
+                let b = u32::rand(&mut rng);
                 // Test that the conversion from u64 to F is homomorphic
-                assert_eq!(F::from(1u64), F::one());
-                assert_eq!(F::from(0u64), F::zero());
+                assert_eq!(F::from(1u32), F::one());
+                assert_eq!(F::from(0u32), F::zero());
                 assert_eq!(F::from(a) + F::from(b), F::from(a + b));
                 assert_eq!(F::from(a) * F::from(b), F::from(a * b));
             }
@@ -199,6 +195,27 @@ mod field_tests {
             Self::test_one(num_tests);
             Self::test_additive_commutes(num_tests);
             Self::test_mul_commutes(num_tests);
+            Self::test_from_u32(num_tests);
+        }
+    }
+}
+
+#[cfg(test)]
+mod prime_field_tests {
+    use super::*;
+    use cryp_std::rand::rngs::mock::StepRng;
+
+    pub struct PrimeFieldTests<F: PrimeField>(cryp_std::marker::PhantomData<F>);
+
+    impl<F: PrimeField> PrimeFieldTests<F> {
+        /// Test that the multiplicative inverse is correct
+        fn test_modulus() {
+            //TODO
+        }
+
+        /// Run all tests for a field
+        pub fn run_all_tests() {
+            Self::test_modulus();
         }
     }
 }
