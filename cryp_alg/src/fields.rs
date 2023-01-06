@@ -29,7 +29,6 @@ pub trait Field:
     + Sync
     + Sized
     + Hash
-    //+ Zeroize //  TODO: Consider removing this
     + UniformRand
     + Add<Self, Output = Self>
     + Sub<Self, Output = Self>
@@ -54,10 +53,8 @@ pub trait Field:
     + for<'a> iter::Product<&'a Self>
     + From<u32>
 {
-
-    
     fn zero() -> Self;
-    
+
     fn one() -> Self;
 
     /// Computes the multiplicative inverse, if it exists.
@@ -73,9 +70,9 @@ pub trait Field:
     }
 
     /// Exponentiation by squaring for a small modulus.
-    /// 
+    ///
     /// Does not run in constant time.
-    fn exp(&self, exp: u64) -> Self {
+    fn pow(&self, exp: u64) -> Self {
         let mut result = Self::one();
         let mut base = *self;
         let mut exp = exp;
@@ -89,6 +86,28 @@ pub trait Field:
         }
 
         result
+    }
+
+    /// Exponentiation by a general exponent
+    ///
+    /// The only property of integer used is breaking into bits.
+    ///
+    /// Default implementation is based on the Montgomery ladder algorithm and runs
+    /// in constant time depending only on the length of exp.to_bits_be().
+    /// Thus, the user must make sure all secret exponents have the same bit length.
+    fn exp(&self, exp: impl Integer) -> Self {
+        let mut res = Self::one();
+        let mut base = *self;
+        for &bit in exp.into_bits_be() {
+            if bit {
+                res += &base;
+                base.square_in_place();
+            } else {
+                base += &res;
+                res.square_in_place();
+            }
+        }
+        res
     }
 }
 

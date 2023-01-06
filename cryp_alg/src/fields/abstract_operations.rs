@@ -73,6 +73,18 @@ pub trait PrimeFieldOperations: 'static + Debug {
     /// Multiplication of two elements in place.
     fn mul_assign(lhs: &mut Self::BigInt, other: &Self::BigInt);
 
+    /// Squaring the element in place
+    ///
+    /// Default implementation uses the multiplication but users may want
+    /// to override this function for performance reasons.
+    ///
+    /// Users should **not** assume squaring has the same time cost as
+    /// a multiplication.
+    fn square_assign(element: &mut Self::BigInt) {
+        let other = *element;
+        Self::mul_assign(element, &other);
+    }
+
     /// The multiplicative inverse of an element, if exists
     fn inverse(element: &Self::BigInt) -> Option<Self::BigInt>;
 }
@@ -108,8 +120,7 @@ impl<S: PrimeFieldOperations> Field for F<S> {
     }
 
     fn square_in_place(&mut self) {
-        let other = self.element;
-        S::mul_assign(&mut self.element, &other);
+        S::square_assign(&mut self.element);
     }
 }
 

@@ -6,9 +6,9 @@ pub trait Limb:
     Sized + From<u32> + Copy + Clone + Eq + Debug + Send + Sync + Hash + UniformRand + PartialOrd + Ord
 {
     /// The type used to represent a carry bit.
-    type Carry : PartialEq + Eq + Copy + Clone + Debug;
+    type Carry: PartialEq + Eq + Copy + Clone + Debug;
 
-    const NO : Self::Carry;
+    const NO: Self::Carry;
 
     const ZERO: Self;
     const ONE: Self;
@@ -29,7 +29,7 @@ impl Limb for u32 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
 
-    const NO :bool = false;
+    const NO: bool = false;
 
     fn carrying_add(&self, rhs: Self, carry: Self::Carry) -> (Self, Self::Carry) {
         let (a, b) = self.overflowing_add(rhs);
@@ -48,7 +48,7 @@ impl Limb for u64 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
 
-    const NO :bool = false;
+    const NO: bool = false;
 
     fn carrying_add(&self, rhs: Self, carry: Self::Carry) -> (Self, Self::Carry) {
         let (a, b) = self.overflowing_add(rhs);
@@ -63,13 +63,12 @@ impl Limb for u64 {
     }
 }
 
-
 impl Limb for u128 {
     type Carry = bool;
     const ZERO: Self = 0;
     const ONE: Self = 1;
 
-    const NO :bool = false;
+    const NO: bool = false;
 
     fn carrying_add(&self, rhs: Self, carry: Self::Carry) -> (Self, Self::Carry) {
         let (a, b) = self.overflowing_add(rhs);

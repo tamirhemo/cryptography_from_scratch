@@ -174,7 +174,7 @@ impl<F: Field> Coordinates for JacobianPoint<F> {
             return None;
         }
         let x = self.X / (self.Z.square());
-        let y = self.Y / (self.Z.exp(3));
+        let y = self.Y / (self.Z.pow(3));
 
         Some(Affine { x, y })
     }
@@ -183,7 +183,7 @@ impl<F: Field> Coordinates for JacobianPoint<F> {
 impl<F: Field> PartialEq for JacobianPoint<F> {
     fn eq(&self, other: &Self) -> bool {
         self.X * other.Z.square() == other.X * self.Z.square()
-            && self.Y * other.Z.exp(3) == other.Y * self.Z.exp(3)
+            && self.Y * other.Z.pow(3) == other.Y * self.Z.pow(3)
     }
 }
 

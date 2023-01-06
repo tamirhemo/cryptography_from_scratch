@@ -4,19 +4,21 @@ use cryp_std::rand::{Rng, UniformRand};
 use super::PrimeFieldOperations;
 use cryp_std::fmt::Debug;
 
-pub trait Modulus<const N: usize>: 'static + Debug {
+pub trait MontParameters<const N: usize>: 'static + Debug {
     type Limb: Limb + Debug;
     const MODULUS: LimbInt<Self::Limb, N>;
+
+    const R: LimbInt<Self::Limb, N>;
 }
 
 #[derive(Debug)]
-pub struct Montgomery<const N: usize, P: Modulus<N>> {
+pub struct Montgomery<const N: usize, P: MontParameters<N>> {
     element: LimbInt<P::Limb, N>,
     _marker: cryp_std::marker::PhantomData<P>,
 }
 
 // Implement montgomery multiplication, addition, and modular reduction
-impl<const N: usize, P: Modulus<N>> PrimeFieldOperations for Montgomery<N, P> {
+impl<const N: usize, P: MontParameters<N>> PrimeFieldOperations for Montgomery<N, P> {
     type BigInt = LimbInt<P::Limb, N>;
     const MODULUS: Self::BigInt = P::MODULUS;
 
@@ -40,6 +42,7 @@ impl<const N: usize, P: Modulus<N>> PrimeFieldOperations for Montgomery<N, P> {
     }
 
     fn reduce(element: &Self::BigInt) -> Self::BigInt {
+        //TODO
         [P::Limb::ZERO; N].into()
     }
 
@@ -77,9 +80,16 @@ impl<const N: usize, P: Modulus<N>> PrimeFieldOperations for Montgomery<N, P> {
         }
     }
 
-    fn mul_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {}
+    fn mul_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
+        //TODO
+    }
 
     fn inverse(element: &Self::BigInt) -> Option<Self::BigInt> {
+        //TODO
         None
+    }
+
+    fn square_assign(element: &mut Self::BigInt) {
+        //TODO
     }
 }
