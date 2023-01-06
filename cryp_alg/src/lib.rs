@@ -4,8 +4,9 @@ mod biginteger;
 mod fields;
 mod groups;
 
-pub use fields::Field;
-pub use groups::Group;
+pub use biginteger::Integer;
+pub use fields::{Field, PrimeField};
+pub use groups::{Group, PrimeGroup};
 
 pub trait Zero {
     fn zero() -> Self;

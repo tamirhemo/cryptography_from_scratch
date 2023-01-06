@@ -2,6 +2,7 @@ mod limb;
 
 use limb::Limb;
 
-pub struct BigInteger<D: Limb, const N: usize> {
-    limbs: [D; N],
+pub trait Integer {
+    fn into_bits_be(&self) -> &[bool];
+    fn into_bits_le(&self) -> &[bool];
 }

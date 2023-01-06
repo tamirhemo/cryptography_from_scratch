@@ -2,13 +2,14 @@ use cryp_std::{
     fmt::{Debug, Display},
     hash::Hash,
     iter,
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign, Neg},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     rand::UniformRand,
+    vec::Vec,
 };
 
-use zeroize::Zeroize;
+use crate::Integer;
 
-use crate::{One, Zero};
+use zeroize::Zeroize;
 
 mod models;
 
@@ -26,8 +27,6 @@ pub trait Field:
     + Hash
     + Zeroize //  TODO: Consider removing this
     + UniformRand
-    + Zero
-    + One
     + Add<Self, Output = Self>
     + Sub<Self, Output = Self>
     + Mul<Self, Output = Self>
@@ -61,7 +60,6 @@ pub trait Field:
     /// The multiplicative identity of the field.
     const ONE: Self;
 
-
     /// Computes the multiplicative inverse, if it exists.
     fn inverse(&self) -> Option<Self>;
     /// Squares the field element in place.
@@ -74,6 +72,9 @@ pub trait Field:
         result
     }
 
+    /// Exponentiation by squaring for a small modulus.
+    /// 
+    /// Does not run in constant time.
     fn exp(&self, exp: u64) -> Self {
         let mut result = Self::ONE;
         let mut base = *self;
@@ -89,18 +90,33 @@ pub trait Field:
 
         result
     }
-    
-    /// Returns `sum([a_i * b_i])`.
-    #[inline]
-    fn sum_of_products<const T: usize>(a: &[Self; T], b: &[Self; T]) -> Self {
-        a.iter()
-            .zip(b.iter())
-            .map(|(a, b)| *a * *b)
-            .sum::<Self>()
+
+    fn zero() -> Self {
+        Self::ZERO
+    }
+
+    fn one() -> Self {
+        Self::ONE
     }
 }
 
+/// An interface for field of prime order.
+///
+/// This is a subtrait of `Field` that adds a few additional properties and is meant to be
+/// used as scalars for multiplications in cryptographic groups.
+///
+/// Elements of this field can be represented as integers of some big integer type.
+pub trait PrimeField: Field {
+    /// The underlying representation as an integer
+    ///
+    /// Safety: the number of bits representing each element must be constant.
+    type BigInt: Integer;
 
+    const MODULUS_MINUS_ONE : Self;
+
+    fn as_int(&self) -> Self::BigInt;
+    fn from_int(int : &Self::BigInt) -> Self;
+}
 
 #[cfg(test)]
 mod field_tests {
