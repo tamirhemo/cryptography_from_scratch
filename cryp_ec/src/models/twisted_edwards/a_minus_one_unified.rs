@@ -34,7 +34,7 @@ impl<P: TwistedEdwardsAM1> CurveOperations for EdwardsAM1UnifiedOperations<P> {
         let A = (Y1 - X1) * (Y2 - X2);
         let B = (Y1 + X1) * (Y2 + X2);
         let C = T1 * P::D2 * T2;
-        let D = Z1 * Self::Field::from(2u32) * Z2;
+        let D = Z1.double() * Z2;
         let E = B - A;
         let F = D - C;
         let G = D + C;
@@ -53,7 +53,7 @@ impl<P: TwistedEdwardsAM1> CurveOperations for EdwardsAM1UnifiedOperations<P> {
         let A = (Y1 - X1) * (Y2 - X2);
         let B = (Y1 + X1) * (Y2 + X2);
         let C = T1 * P::D2 * T2;
-        let D = Z1 * Self::Field::from(2u32);
+        let D = Z1.double();
         let E = B - A;
         let F = D - C;
         let G = D + C;

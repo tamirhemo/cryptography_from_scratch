@@ -39,10 +39,10 @@ impl<P: ShortWeierstrass> CurveOperations for ShortWeierstrassOperations<P> {
         let H = U2 - U1;
         let I = (H + H).square();
         let J = H * I;
-        let r = Self::Field::from(2u32) * (S2 - S1);
+        let r = (S2 - S1).double();
         let V = U1 * I;
-        lhs.X = r.square() - J - Self::Field::from(2u32) * V;
-        lhs.Y = r * (V - lhs.X) - Self::Field::from(2u32) * S1 * J;
+        lhs.X = r.square() - J - V.double();
+        lhs.Y = r * (V - lhs.X) - S1 * J.double();
         lhs.Z = ((Z1 + Z2).square() - Z1Z1 - Z2Z2) * H;
     }
 
@@ -60,10 +60,10 @@ impl<P: ShortWeierstrass> CurveOperations for ShortWeierstrassOperations<P> {
         let HH = H.square();
         let I = HH + HH;
         let J = H * I;
-        let r = Self::Field::from(2u32) * (S2 - Y1);
+        let r = (S2 - Y1).double();
         let V = X1 * I;
-        lhs.X = r.square() - J - Self::Field::from(2u32) * V;
-        lhs.Y = r * (V - lhs.X) - Self::Field::from(2u32) * Y1 * J;
+        lhs.X = r.square() - J - V.double();
+        lhs.Y = r * (V - lhs.X) - Y1 * J.double();
         lhs.Z = (Z1 + H).square() - Z1Z1 - HH;
     }
 
@@ -76,11 +76,11 @@ impl<P: ShortWeierstrass> CurveOperations for ShortWeierstrassOperations<P> {
         let YY = Y.square();
         let YYYY = YY.square();
         let ZZ = Z.square();
-        let S = Self::Field::from(2u32) * (X + YY).square() - XX - YYYY;
-        let M = Self::Field::from(3u32) * XX + P::A * ZZ.square();
-        let T = M.square() - Self::Field::from(2u32) * S;
+        let S = ((X + YY).square()).double() - XX - YYYY;
+        let M = XX.double() + XX + P::A * ZZ.square();
+        let T = M.square() - S.double();
         point.X = T;
-        point.Y = M * (S - T) - Self::Field::from(8u32) * YYYY;
+        point.Y = M * (S - T) - YYYY.double().double().double();
         point.Z = (Y + Z).square() - YY - ZZ;
     }
 }

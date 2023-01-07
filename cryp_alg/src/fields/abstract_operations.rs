@@ -1,3 +1,5 @@
+use crate::biginteger::Bits;
+
 use super::{Field, Integer, PrimeField};
 use cryp_std::{
     fmt::{Debug, Display},
@@ -23,7 +25,7 @@ pub trait PrimeFieldOperations: 'static + Debug {
         + Display
         + PartialEq
         + Eq
-        + From<u32>
+        //+ From<u32>
         //+ From<u64>
         //+ From<u128>
         //+ From<u8>
@@ -38,6 +40,9 @@ pub trait PrimeFieldOperations: 'static + Debug {
 
     ///The multiplicative identity of the field.
     fn one() -> Self::BigInt;
+
+    // Allows for different internal representation of field elements
+    fn as_int(element: &Self::BigInt) -> Self::BigInt;
 
     /// Returns the reduction of the element modulo the prime.
     fn reduce(element: &Self::BigInt) -> Self::BigInt;
@@ -85,8 +90,44 @@ pub trait PrimeFieldOperations: 'static + Debug {
         Self::mul_assign(element, &other);
     }
 
+    /// Doubling the element in place
+    ///
+    /// Default implementation uses the addition but users may want
+    /// to override this function for performance reasons.
+    ///
+    /// Users should **not** assume squaring has the same time cost as
+    /// a multiplication.
+    fn double_assign(element: &mut Self::BigInt) {
+        let other = *element;
+        Self::add_assign(element, &other);
+    }
+
     /// The multiplicative inverse of an element, if exists
     fn inverse(element: &Self::BigInt) -> Option<Self::BigInt>;
+
+    /// Exponentiation of an element.
+    ///
+    ///  Default implementation is based on the Montgomery ladder algorithm and runs
+    /// in constant time depending only on the length of exp.to_bits_be().
+    /// Thus, the user must make sure all secret exponents have the same bit length.
+    fn exp(element: &Self::BigInt, exp: & impl Integer) -> Self::BigInt {
+        let mut res = Self::one();
+        let mut base = *element;
+
+        let iter_bits_be = Bits::into_iter_be(exp);
+
+        for bit in iter_bits_be {
+            // extract bits in big endian order
+            if bit {
+                Self::mul_assign(&mut res, &base);
+                Self::square_assign(&mut base);
+            } else {
+                Self::mul_assign(&mut base, &res);
+                Self::square_assign(&mut res);
+            }
+        }
+        res
+    }
 }
 
 #[derive(Debug)]
@@ -122,6 +163,14 @@ impl<S: PrimeFieldOperations> Field for F<S> {
     fn square_in_place(&mut self) {
         S::square_assign(&mut self.element);
     }
+
+    fn double_in_place(&mut self) {
+        S::double_assign(&mut self.element);
+    }
+
+    fn exp(&self, exp: & impl Integer) -> Self {
+        Self::new(S::exp(&self.element, exp))
+    }
 }
 
 impl<S: PrimeFieldOperations> PrimeField for F<S> {
@@ -130,11 +179,11 @@ impl<S: PrimeFieldOperations> PrimeField for F<S> {
     const MODULUS: Self::BigInt = S::MODULUS;
 
     fn as_int(&self) -> Self::BigInt {
-        self.element
+        S::as_int(&self.element)
     }
 
     fn from_int(int: &Self::BigInt) -> Self {
-        Self::new(*int)
+        Self::new(S::reduce(int))
     }
 }
 
@@ -365,4 +414,4 @@ macro_rules! impl_from {
     };
 }
 
-impl_from!(u32);
+//impl_from!(u32);

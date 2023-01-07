@@ -4,6 +4,6 @@ mod biginteger;
 mod fields;
 mod groups;
 
-pub use biginteger::Integer;
+pub use biginteger::{Integer, Bits};
 pub use fields::{Field, PrimeField};
 pub use groups::{Group, PrimeGroup};

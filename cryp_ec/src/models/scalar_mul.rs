@@ -10,7 +10,7 @@ use super::CurveOperations;
 
 use super::Coordinates;
 use core::borrow::Borrow;
-use cryp_alg::Integer;
+use cryp_alg::{Integer, Bits};
 use cryp_alg::PrimeField;
 
 pub struct ScalarMul;
@@ -24,7 +24,9 @@ impl ScalarMul {
     pub fn double_and_add<C: CurveOperations>(base: &C::Point, scalar: &impl Integer) -> C::Point {
         let mut res = C::identity();
         let mut base = *base;
-        for &bit in scalar.into_bits_be() {
+
+        let bits = Bits::into_iter_be(scalar);
+        for bit in bits {
             if bit {
                 C::add_in_place(&mut res, &base);
             }
@@ -42,7 +44,9 @@ impl ScalarMul {
     ) -> C::Point {
         let mut res = C::identity();
         let mut base = *base;
-        for &bit in scalar.into_bits_be() {
+
+        let bits = Bits::into_iter_be(scalar);
+        for bit in bits {
             if bit {
                 C::add_in_place(&mut res, &base);
                 C::double_in_place(&mut base);

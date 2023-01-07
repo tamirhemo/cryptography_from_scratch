@@ -14,6 +14,7 @@ use zeroize::Zeroize;
 mod abstract_operations;
 mod montgomery;
 mod p25519;
+mod general_reduction;
 
 pub use abstract_operations::PrimeFieldOperations;
 
@@ -51,7 +52,6 @@ pub trait Field:
     + for<'a> iter::Sum<&'a Self>
     + iter::Product<Self>
     + for<'a> iter::Product<&'a Self>
-    + From<u32>
 {
     fn zero() -> Self;
 
@@ -66,6 +66,15 @@ pub trait Field:
     fn square(&self) -> Self {
         let mut result = *self;
         result.square_in_place();
+        result
+    }
+
+    /// Doubles the field element in place.
+    fn double_in_place(&mut self);
+
+    fn double(&self) -> Self {
+        let mut result = *self;
+        result.double_in_place();
         result
     }
 
@@ -89,26 +98,7 @@ pub trait Field:
     }
 
     /// Exponentiation by a general exponent
-    ///
-    /// The only property of integer used is breaking into bits.
-    ///
-    /// Default implementation is based on the Montgomery ladder algorithm and runs
-    /// in constant time depending only on the length of exp.to_bits_be().
-    /// Thus, the user must make sure all secret exponents have the same bit length.
-    fn exp(&self, exp: impl Integer) -> Self {
-        let mut res = Self::one();
-        let mut base = *self;
-        for &bit in exp.into_bits_be() {
-            if bit {
-                res += &base;
-                base.square_in_place();
-            } else {
-                base += &res;
-                res.square_in_place();
-            }
-        }
-        res
-    }
+    fn exp(&self, exp: & impl Integer) -> Self;
 }
 
 /// An interface for field of prime order.
@@ -190,6 +180,7 @@ mod field_tests {
             }
         }
 
+        /* 
         /// Test that the conversion from u128 to F is homomorphic
         fn test_from_u32(num_tests: usize) {
             let mut rng = StepRng::new(0, 1);
@@ -204,6 +195,7 @@ mod field_tests {
                 assert_eq!(F::from(a) * F::from(b), F::from(a * b));
             }
         }
+        */
 
         fn comparison_with_big_int() {}
 
@@ -214,7 +206,7 @@ mod field_tests {
             Self::test_one(num_tests);
             Self::test_additive_commutes(num_tests);
             Self::test_mul_commutes(num_tests);
-            Self::test_from_u32(num_tests);
+            //Self::test_from_u32(num_tests);
         }
     }
 }

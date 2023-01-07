@@ -1,67 +1,67 @@
+//! Methods and types for big precision integers
+//! 
+//! This module provides a type for big precision integers and methods for converting 
+//! integers into iterators of bits.
+//! 
+//! 
+
 mod limb;
+mod limbint;
 
 pub use limb::Limb;
+pub use limbint::LimbInt;
 
-pub trait Integer {
-    fn into_bits_be(&self) -> &[bool];
-    fn into_bits_le(&self) -> &[bool];
+pub trait Integer : Sized  {
+    type Limb: Limb;
+
+    fn into_limbs_le(&self) -> &[Self::Limb];
+
+    fn from_bytes_be(bytes: &[u8]) -> Result<Self, BytesConversionError>;
+    fn from_bytes_le(bytes: &[u8]) -> Result<Self, BytesConversionError>;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct LimbInt<L: Limb, const N: usize> {
-    pub limbs: [L; N],
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum BytesConversionError {
+    LengthTooBig,
+    LengthNotMultipleOfLimbSize,
 }
 
-impl<L: Limb, const N: usize> LimbInt<L, N> {
-    pub fn carrying_add(&self, rhs: Self, carry: L::Carry) -> (Self, L::Carry) {
-        let mut carry = carry;
-        let mut limbs = [L::ZERO; N];
-        for i in 0..N {
-            let (l, c) = self.limbs[i].carrying_add(rhs.limbs[i], carry);
-            limbs[i] = l;
-            carry = c;
-        }
-        (limbs.into(), carry)
-    }
+/// Provides a namespace for converting an integer type into
+/// an iterator of bits.
+/// 
+/// *remark* This is a workaround for the lack of impl as return values in trait method
+pub struct Bits;
 
-    pub fn carrying_sub(&self, rhs: Self, carry: L::Carry) -> (Self, L::Carry) {
-        let mut carry = carry;
-        let mut limbs = [L::ZERO; N];
-        for i in 0..N {
-            let (l, c) = self.limbs[i].carrying_sub(rhs.limbs[i], carry);
-            limbs[i] = l;
-            carry = c;
-        }
-        (limbs.into(), carry)
-    }
-}
+impl Bits {
 
-impl<L: Limb, const N: usize> From<[L; N]> for LimbInt<L, N> {
-    fn from(limbs: [L; N]) -> Self {
-        Self { limbs }
+    /// Converts an integer into an iterator of bits 
+    /// 
+    /// The function iterates over limbs, turns every limb into a bit array 
+    /// (most significant bit first)
+    /// and chains all these iterators together.
+    #[inline]
+    pub fn into_iter_be(element : &impl Integer) -> impl Iterator<Item = bool> + '_ {
+    Bytes::into_iter_be(element)
+    .flat_map(|b|(0..8).rev().map(move |i| (b >> i) & 1 == 1))
     }
 }
 
-impl<L: Limb, const N: usize> From<u32> for LimbInt<L, N> {
-    fn from(value: u32) -> Self {
-        let mut limbs = [L::ZERO; N];
-        limbs[0] = L::from(value);
-        limbs.into()
+pub struct Bytes;
+
+impl Bytes {
+
+    /// Converts an integer into an iterator of bits 
+    /// 
+    /// The function iterates over limbs, turns every limb into a bit array 
+    /// (most significant bit first)
+    /// and chains all these iterators together.
+    #[inline]
+    pub fn into_iter_be(element : &impl Integer) -> impl Iterator<Item = u8> + '_ {
+    element
+    .into_limbs_le()
+    .iter()
+    .rev()
+    .flat_map(|l| l.into_bytes_be())
     }
 }
 
-impl<L: Limb, const N: usize> Integer for LimbInt<L, N> {
-    fn into_bits_be(&self) -> &[bool] {
-        unimplemented!()
-    }
-
-    fn into_bits_le(&self) -> &[bool] {
-        unimplemented!()
-    }
-}
-
-impl<L: Limb, const N: usize> cryp_std::fmt::Display for LimbInt<L, N> {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "LimbInt({:?})", self.limbs)
-    }
-}

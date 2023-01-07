@@ -9,6 +9,9 @@ edition = "2021"
 cryp_std = { path = "../cryp_std", default-features = false }
 zeroize = { version = "1", default-features = false, features = ["zeroize_derive"] }
 
+[dev-dependencies]
+num-bigint = "0.4"
+
 [features]
 default = []
 std = ["cryp_std/std", "zeroize/std"]
