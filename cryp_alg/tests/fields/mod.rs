@@ -51,12 +51,24 @@ mod test_montgomery {
         assert_eq!(three * three, four);
         assert_eq!(three * four, two);
 
+        // test inversion
+        assert_eq!(zero.inverse(), None);
+        assert_eq!(one.inverse().unwrap(), one);
+        assert_eq!(two.inverse().unwrap(), three);
+        assert_eq!(three.inverse().unwrap(), two);
+
+        // test exponentiation
+        assert_eq!(four.pow(5), four);
+        assert_eq!(
+            four.pow(6),
+            four.exp(&<F5 as PrimeField>::BigInteger::from([6]))
+        );
     }
 
     fn test_fp192() {
         // The NIST prime 2^192 - 2^64 - 1
         #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-        pub struct Fp192Params;
+        struct Fp192Params;
 
         impl MontParameters<3usize> for Fp192Params {
             type Limb = u64;
@@ -83,14 +95,14 @@ mod test_montgomery {
         assert_eq!(modulus, Fp192::zero());
 
         let element = Fp192::from_int(&[0u64, 0u64, 1u64].into());
-        assert_eq!(element, Fp192::from_int(&[1,1,0].into()));
+        assert_eq!(element, Fp192::from_int(&[1, 1, 0].into()));
 
         let square = element.square();
-        assert_eq!(square, element*element);
-        assert_eq!(square, Fp192::from_int(&[1,2,1].into()));
+        assert_eq!(square, element * element);
+        assert_eq!(square, Fp192::from_int(&[1, 2, 1].into()));
 
         let square_again = square.square();
-        assert_eq!(square_again, square*element*element);
-        assert_eq!(square_again, Fp192::from_int(&[5,9,7].into()));
+        assert_eq!(square_again, square * element * element);
+        assert_eq!(square_again, Fp192::from_int(&[5, 9, 7].into()));
     }
 }

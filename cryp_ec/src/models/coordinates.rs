@@ -19,6 +19,16 @@ pub struct Affine<F: Field> {
     pub y: F,
 }
 
+impl<F: Field> Affine<F> {
+
+    pub const fn new(x: F, y: F) -> Self {
+        Self {
+            x,
+            y,
+        }
+    }
+}
+
 impl<F: Field> Display for Affine<F> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "Affine(x={}, y={})", self.x, self.y)
@@ -213,4 +223,18 @@ impl<F: Field> From<Affine<F>> for JacobianPoint<F> {
             Z: F::one(),
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_projective_to_affine() {}
+
+    #[test]
+    fn test_extended_to_affine() {}
+
+    #[test]
+    fn test_jacobian_to_affine() {}
 }

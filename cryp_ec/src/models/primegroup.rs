@@ -16,16 +16,16 @@ pub use subgroup::PrimeSubGroupConfig;
 ///
 /// The group can come from a prime order subgroup (as is most common) or even
 /// be a quotient group such as in the case of Ristretto.
-pub trait PrimeGroupConfig: CurveOperations + Sized + 'static + PartialEq + Eq {
+pub trait PrimeGroupConfig: CurveOperations + Debug + Sized + 'static + PartialEq + Eq {
     type Public: Into<Self::Point> + Send + Sync + Hash + PartialEq + Eq + Clone + Copy;
     /// Finite field with the same order as the subgroup.
     type ScalarField: PrimeField;
 
     /// Gives a generator of the group.
-    fn generator(rng: Option<impl Rng>) -> Self::Public;
+    fn generator<R : Rng>(rng: Option<R>) -> Self::Public;
 
     /// Gives a random element of the group.
-    fn rand(rng: impl Rng) -> Self::Public;
+    fn rand<R: Rng>(rng: R) -> Self::Public;
 
     /// Verifies that the `Public` element is valid group element.
     fn is_valid(input: &Self::Public) -> bool;
@@ -129,7 +129,7 @@ impl<P: PrimeGroupConfig> PrimeGroup for GroupEC<P> {
         P::as_public(&self.point).map(PublicEC::new)
     }
 
-    fn generator(rng: Option<impl Rng>) -> Self::Public {
+    fn generator<R: Rng>(rng: Option<R>) -> Self::Public {
         PublicEC::new(P::generator(rng))
     }
 

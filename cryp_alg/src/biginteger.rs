@@ -61,3 +61,21 @@ impl Bytes {
             .flat_map(|l| l.into_bytes_be())
     }
 }
+
+/*
+#[cfg(test)]
+impl Integer for num_bigint::BigUint {
+    type Limb = u32;
+
+    fn into_limbs_le(&self) -> &[Self::Limb]{
+        self.to_u32_digits().as_slice()
+    }
+
+    fn from_bytes_be(bytes: &[u8]) -> Result<Self, BytesConversionError> {
+        Ok(num_bigint::BigUint::from_bytes_be(bytes))
+    }
+    fn from_bytes_le(bytes: &[u8]) -> Result<Self, BytesConversionError> {
+        Ok(num_bigint::BigUint::from_bytes_le(bytes))
+    }
+}
+*/

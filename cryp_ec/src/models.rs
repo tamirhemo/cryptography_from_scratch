@@ -41,7 +41,9 @@ mod short_weierstrass;
 mod twisted_edwards;
 
 pub use coordinates::Coordinates;
-pub use primegroup::{PrimeGroupConfig, PrimeSubGroupConfig};
+pub use primegroup::{GroupEC, PrimeGroupConfig, PrimeSubGroupConfig};
+pub use short_weierstrass::ShortWeierstrass;
+pub use twisted_edwards::{TwistedEdwardsAM1, EdwardsAM1UnifiedOperations};
 
 /// A trait for the operations on an elliptic curve.
 ///

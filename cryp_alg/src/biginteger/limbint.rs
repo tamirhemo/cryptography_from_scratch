@@ -8,15 +8,20 @@ pub struct LimbInt<L: Limb, const N: usize> {
 
 impl<L: Limb, const N: usize> LimbInt<L, N> {
     #[inline]
-    pub fn zero() -> Self {
-        [L::ZERO; N].into()
+    pub const fn zero() -> Self {
+        Self::from_limbs([L::ZERO; N])
     }
 
     #[inline]
-    pub fn one() -> Self {
+    pub const fn one() -> Self {
         let mut res = [L::ZERO; N];
         res[0] = L::ONE;
-        res.into()
+        Self::from_limbs(res)
+    }
+
+    #[inline]
+    pub const fn from_limbs(limbs: [L; N]) -> Self {
+        Self { limbs }
     }
 
     fn single_power(limb: L, i: usize) -> Self {

@@ -24,9 +24,13 @@ pub trait TwistedEdwardsGeneral {
 /// "Twisted Edwards Curves Revisited" by Hisil, Wong, Carter, Dawson, and Dahab.
 ///  http://eprint.iacr.org/2008/522
 pub trait TwistedEdwardsAM1 {
+    /// The field over which the curve is defined
     type Field: Field;
 
+    /// The parameter d
     const D: Self::Field;
+
+    /// The element 2*d
     const D2: Self::Field;
 
     fn verify() -> bool {

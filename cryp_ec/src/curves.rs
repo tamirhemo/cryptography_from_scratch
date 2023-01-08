@@ -1,1 +1,2 @@
-mod ec25519;
+mod bls12_318;
+mod ed25519;

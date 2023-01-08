@@ -9,7 +9,7 @@ use cryp_std::{
 
 use core::borrow::Borrow;
 
-use crate::{Integer, PrimeField};
+use crate::{PrimeField};
 
 //use zeroize::Zeroize;
 
@@ -21,7 +21,7 @@ pub trait Group:
     + PartialEq
     + Eq
     //+ Display 
-    //+ Debug
+    + Debug
     + Send
     + Sync
     + Sized
@@ -93,7 +93,7 @@ pub trait PrimeGroup:
         + for<'a> Add<&'a Self::Public, Output = Self>;
 
     /// Gives a generator for the group.
-    fn generator(rng: Option<impl Rng>) -> Self::Public;
+    fn generator<R: Rng>(rng: Option<R>) -> Self::Public;
 
     /// Verifies that a given `Public` type is a valid element of the group
     fn is_valid(input: &Self::Public) -> bool;

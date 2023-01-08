@@ -5,20 +5,20 @@ use super::*;
 /// This trait allows the user to define a prime order subgroup of an elliptic curve
 /// defined via the `CurveOperations` trait.
 ///
-pub trait PrimeSubGroupConfig: CurveOperations + Sized + 'static + Eq + PartialEq {
+pub trait PrimeSubGroupConfig: CurveOperations + Debug + Sized + 'static + Eq + PartialEq {
     /// Finite field with the same order as the subgroup.
     type ScalarField: PrimeField;
-
-    /// Gives a generator of the group.
-    fn generator(rng: Option<impl Rng>) -> Self::Affine;
-    /// Gives a random element of the group.
-    fn rand(rng: impl Rng) -> Self::Affine;
 
     /// The cofactor of the curve
     /// This is the number of points on the curve divided by the order of the group.
     ///
     /// Cofactors are usually small, so we use a `u16` to represent them.
     const COFACTOR: u32;
+
+    /// Gives a generator of the group.
+    fn generator(rng: Option<impl Rng>) -> Self::Affine;
+    /// Gives a random element of the group.
+    fn rand(rng: impl Rng) -> Self::Affine;
 
     /// Gives a vector of generators of the group of size `n`.
     ///
@@ -98,11 +98,11 @@ where
         T::add_affine_in_place(lhs, rhs)
     }
 
-    fn generator(rng: Option<impl Rng>) -> Self::Public {
+    fn generator<R : Rng>(rng: Option<R>) -> Self::Public {
         Self::generator(rng)
     }
 
-    fn rand(rng: impl Rng) -> Self::Public {
+    fn rand<R : Rng>(rng: R) -> Self::Public {
         Self::rand(rng)
     }
 

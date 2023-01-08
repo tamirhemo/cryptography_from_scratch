@@ -112,12 +112,12 @@ pub trait PrimeField: Field {
     /// The underlying representation as an integer
     ///
     /// Safety: the number of bits representing each element must be constant.
-    type BigInt: Integer + Debug + PartialEq + Eq;
+    type BigInteger: Integer + Debug + PartialEq + Eq;
 
-    const MODULUS: Self::BigInt;
+    const MODULUS: Self::BigInteger;
 
-    fn as_int(&self) -> Self::BigInt;
-    fn from_int(int: &Self::BigInt) -> Self;
+    fn as_int(&self) -> Self::BigInteger;
+    fn from_int(int: &Self::BigInteger) -> Self;
 }
 
 #[cfg(test)]

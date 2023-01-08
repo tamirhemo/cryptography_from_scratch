@@ -143,6 +143,17 @@ impl<S: PrimeFieldOperations> F<S> {
             element: S::reduce(&element),
         }
     }
+
+    /// Allows the assignment of a field element with specific limbs
+    ///
+    /// This function is meant to be used when the user needs to hard-encode
+    /// a field element. The user should make sure that the element is in
+    /// the correct representation.
+    #[inline]
+    #[allow(non_snake_case)]
+    pub const fn from_RAW_limbs(element: S::BigInt) -> Self {
+        Self { element }
+    }
 }
 
 //------------------------------------
@@ -176,15 +187,15 @@ impl<S: PrimeFieldOperations> Field for F<S> {
 }
 
 impl<S: PrimeFieldOperations> PrimeField for F<S> {
-    type BigInt = S::BigInt;
+    type BigInteger = S::BigInt;
 
-    const MODULUS: Self::BigInt = S::MODULUS;
+    const MODULUS: Self::BigInteger = S::MODULUS;
 
-    fn as_int(&self) -> Self::BigInt {
+    fn as_int(&self) -> Self::BigInteger {
         S::as_int(&self.element)
     }
 
-    fn from_int(int: &Self::BigInt) -> Self {
+    fn from_int(int: &Self::BigInteger) -> Self {
         Self::new(S::reduce(int))
     }
 }

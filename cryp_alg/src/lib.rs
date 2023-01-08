@@ -4,7 +4,7 @@ mod biginteger;
 mod fields;
 mod groups;
 
-pub use biginteger::{Bits, Integer};
+pub use biginteger::{Bits, Integer, LimbInt};
 pub use fields::{
     Field, MontParameters, MontgomeryOperations, PrimeField, PrimeFieldOperations, F,
 };

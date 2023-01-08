@@ -1,6 +1,7 @@
 use super::*;
 
 /// A wrapper for Twisted Edwards Curve parameters
+#[derive(Clone, Copy, Debug, PartialEq , Eq)]
 pub struct EdwardsAM1UnifiedOperations<P: TwistedEdwardsAM1> {
     _marker: cryp_std::marker::PhantomData<P>,
 }

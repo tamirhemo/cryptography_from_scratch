@@ -9,14 +9,21 @@ use cryp_std::fmt::Debug;
 /// This is useful for e.g. primes with special form that can be reduced efficiently.
 pub trait GeneralReduction<const N: usize>: 'static + Debug {
     type Limb: Limb + Debug;
-    const MODULUS: LimbInt<Self::Limb, N>;
+    const MODULUS: [Self::Limb; N];
 
     /// Reduction mod the prime for a general double-length integer.
     ///
     /// This function is used in the implementation of the field operations.
-    fn reduction(
+    fn reduction(element: &([Self::Limb; N], [Self::Limb; N])) -> [Self::Limb; N];
+
+    /// Reduction mod the prime for a the double-length integer type used in internal implementations.
+    fn reduction_limbint(
         element: &(LimbInt<Self::Limb, N>, LimbInt<Self::Limb, N>),
-    ) -> LimbInt<Self::Limb, N>;
+    ) -> LimbInt<Self::Limb, N> {
+        let res_limbs = Self::reduction(&((element.0.limbs), (element.1.limbs)));
+
+        LimbInt { limbs: res_limbs }
+    }
 }
 
 #[derive(Debug)]
@@ -28,7 +35,7 @@ impl<const N: usize, P: GeneralReduction<N>> PrimeFieldOperations
     for GeneralReductionOperations<N, P>
 {
     type BigInt = LimbInt<P::Limb, N>;
-    const MODULUS: Self::BigInt = P::MODULUS;
+    const MODULUS: Self::BigInt = LimbInt { limbs: P::MODULUS };
 
     #[inline]
     fn zero() -> Self::BigInt {
@@ -40,13 +47,12 @@ impl<const N: usize, P: GeneralReduction<N>> PrimeFieldOperations
         Self::BigInt::one()
     }
 
-    /// Checks if the element is zero.
     fn is_zero(element: &Self::BigInt) -> bool {
         let mut flag = false;
         for i in 0..N {
             flag = flag || element.limbs[i] != P::Limb::ZERO;
         }
-        flag
+        !flag
     }
 
     fn as_int(element: &Self::BigInt) -> Self::BigInt {
@@ -56,7 +62,7 @@ impl<const N: usize, P: GeneralReduction<N>> PrimeFieldOperations
     fn reduce(element: &Self::BigInt) -> Self::BigInt {
         // Using the given reduction algorithm
         let padded = (*element, *&Self::BigInt::zero());
-        P::reduction(&padded)
+        P::reduction_limbint(&padded)
     }
 
     fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self::BigInt {
@@ -67,9 +73,10 @@ impl<const N: usize, P: GeneralReduction<N>> PrimeFieldOperations
     }
 
     fn add_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
+        let modulus = LimbInt::from(P::MODULUS);
         let (d, c_1) = lhs.carrying_add(*other, P::Limb::NO);
 
-        let (e, c_2) = d.carrying_sub(P::MODULUS, P::Limb::NO);
+        let (e, c_2) = d.carrying_sub(modulus, P::Limb::NO);
 
         if c_1 == c_2 {
             *lhs = e;
@@ -79,9 +86,10 @@ impl<const N: usize, P: GeneralReduction<N>> PrimeFieldOperations
     }
 
     fn sub_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
+        let modulus = LimbInt::from(P::MODULUS);
         let (d, c_1) = lhs.carrying_sub(*other, P::Limb::NO);
 
-        let (e, _) = d.carrying_add(P::MODULUS, P::Limb::NO);
+        let (e, _) = d.carrying_add(modulus, P::Limb::NO);
 
         if c_1 == P::Limb::NO {
             *lhs = d;
@@ -92,7 +100,7 @@ impl<const N: usize, P: GeneralReduction<N>> PrimeFieldOperations
 
     fn mul_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
         let double = lhs.carrying_mul(*other, Self::BigInt::zero());
-        *lhs = P::reduction(&double);
+        *lhs = P::reduction_limbint(&double);
     }
 
     fn inverse(element: &Self::BigInt) -> Option<Self::BigInt> {
@@ -100,7 +108,7 @@ impl<const N: usize, P: GeneralReduction<N>> PrimeFieldOperations
 
         // Set power to p-2
         let two = Self::one().carrying_add(Self::one(), P::Limb::NO).0;
-        let field_power = P::MODULUS.carrying_sub(two, P::Limb::NO).0;
+        let field_power = LimbInt::from(P::MODULUS).carrying_sub(two, P::Limb::NO).0;
 
         let power = Self::as_int(&field_power);
 
