@@ -10,8 +10,8 @@ use super::CurveOperations;
 
 use super::Coordinates;
 use core::borrow::Borrow;
-use cryp_alg::{Integer, Bits};
 use cryp_alg::PrimeField;
+use cryp_alg::{Bits, Integer};
 
 pub struct ScalarMul;
 

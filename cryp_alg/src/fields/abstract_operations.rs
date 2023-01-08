@@ -55,11 +55,13 @@ pub trait PrimeFieldOperations: 'static + Debug {
 
     /// Checks if two elements are equal.
     ///
+    /// Note that we need to check equality in the field, so this is checking
+    /// equality mod p
+    ///
     /// Default implementations uses the zero comparison and substraction.
     fn equals(lhs: &Self::BigInt, rhs: &Self::BigInt) -> bool {
         let mut res = *lhs;
-        Self::negation(&mut res);
-        Self::add_assign(&mut res, rhs);
+        Self::sub_assign(&mut res, &rhs);
         Self::is_zero(&res)
     }
 
@@ -69,10 +71,10 @@ pub trait PrimeFieldOperations: 'static + Debug {
     fn sub_assign(lhs: &mut Self::BigInt, other: &Self::BigInt);
 
     /// Negation of an element.
-    fn negation(element: &Self::BigInt) -> Self::BigInt {
+    fn negation_in_place(element: &mut Self::BigInt) {
         let mut res = Self::zero();
-        Self::sub_assign(&mut res, element);
-        res
+        Self::sub_assign(&mut res, &element);
+        *element = res;
     }
 
     /// Multiplication of two elements in place.
@@ -110,7 +112,7 @@ pub trait PrimeFieldOperations: 'static + Debug {
     ///  Default implementation is based on the Montgomery ladder algorithm and runs
     /// in constant time depending only on the length of exp.to_bits_be().
     /// Thus, the user must make sure all secret exponents have the same bit length.
-    fn exp(element: &Self::BigInt, exp: & impl Integer) -> Self::BigInt {
+    fn exp(element: &Self::BigInt, exp: &impl Integer) -> Self::BigInt {
         let mut res = Self::one();
         let mut base = *element;
 
@@ -132,7 +134,7 @@ pub trait PrimeFieldOperations: 'static + Debug {
 
 #[derive(Debug)]
 pub struct F<S: PrimeFieldOperations> {
-    pub element: S::BigInt,
+    element: S::BigInt,
 }
 
 impl<S: PrimeFieldOperations> F<S> {
@@ -168,7 +170,7 @@ impl<S: PrimeFieldOperations> Field for F<S> {
         S::double_assign(&mut self.element);
     }
 
-    fn exp(&self, exp: & impl Integer) -> Self {
+    fn exp(&self, exp: &impl Integer) -> Self {
         Self::new(S::exp(&self.element, exp))
     }
 }
@@ -325,7 +327,7 @@ impl<S: PrimeFieldOperations> Neg for F<S> {
 
     fn neg(self) -> Self {
         let mut result = self;
-        S::negation(&mut result.element);
+        S::negation_in_place(&mut result.element);
         result
     }
 }

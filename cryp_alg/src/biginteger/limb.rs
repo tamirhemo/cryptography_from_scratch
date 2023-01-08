@@ -2,19 +2,30 @@ use cryp_std::fmt::Debug;
 use cryp_std::hash::Hash;
 use cryp_std::rand::UniformRand;
 
-
 /// Limb is a trait which represents a single limb of a big integer.
-/// 
+///
 /// Currently, it is assumed implicitly that Limb behaves like a power of two when
 /// it comes to coversion from bits.
 pub trait Limb:
-    Sized + From<u32> + Copy + Clone + Eq + Debug + Send + Sync + Hash + UniformRand + PartialOrd + Ord
+    Sized
+    + From<u32>
+    + Copy
+    + Clone
+    + PartialEq
+    + Eq
+    + Debug
+    + Send
+    + Sync
+    + Hash
+    + UniformRand
+    + PartialOrd
+    + Ord
 {
     /// The type used to represent a carry bit.
     type Carry: PartialEq + Eq + Copy + Clone + Debug;
 
-    const BYTES : usize; 
-    type Bytes : 'static + Sized + Copy + Clone + IntoIterator<Item = u8>;
+    const BYTES: usize;
+    type Bytes: 'static + Sized + Copy + Clone + IntoIterator<Item = u8>;
 
     const NO: Self::Carry;
 
@@ -43,13 +54,12 @@ pub trait Limb:
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct WrongByteLengthError;
 
-
 impl Limb for u32 {
     type Carry = bool;
     const ZERO: Self = 0;
     const ONE: Self = 1;
 
-    const BYTES : usize = 4;
+    const BYTES: usize = 4;
     type Bytes = [u8; 4];
 
     const NO: bool = false;
@@ -79,15 +89,17 @@ impl Limb for u32 {
     }
 
     fn from_bytes_be(bytes: &[u8]) -> Result<Self, WrongByteLengthError> {
-        bytes.try_into()
-        .map_err(|_| WrongByteLengthError)
-        .map(u32::from_be_bytes)
+        bytes
+            .try_into()
+            .map_err(|_| WrongByteLengthError)
+            .map(u32::from_be_bytes)
     }
 
     fn from_bytes_le(bytes: &[u8]) -> Result<Self, WrongByteLengthError> {
-        bytes.try_into()
-        .map_err(|_| WrongByteLengthError)
-        .map(u32::from_le_bytes)
+        bytes
+            .try_into()
+            .map_err(|_| WrongByteLengthError)
+            .map(u32::from_le_bytes)
     }
 }
 
@@ -96,7 +108,7 @@ impl Limb for u64 {
     const ZERO: Self = 0;
     const ONE: Self = 1;
 
-    const BYTES : usize = 8;
+    const BYTES: usize = 8;
     type Bytes = [u8; 8];
 
     const NO: bool = false;
@@ -127,15 +139,17 @@ impl Limb for u64 {
     }
 
     fn from_bytes_be(bytes: &[u8]) -> Result<Self, WrongByteLengthError> {
-        bytes.try_into()
-        .map_err(|_| WrongByteLengthError)
-        .map(u64::from_be_bytes)
+        bytes
+            .try_into()
+            .map_err(|_| WrongByteLengthError)
+            .map(u64::from_be_bytes)
     }
 
     fn from_bytes_le(bytes: &[u8]) -> Result<Self, WrongByteLengthError> {
-        bytes.try_into()
-        .map_err(|_| WrongByteLengthError)
-        .map(u64::from_le_bytes)
+        bytes
+            .try_into()
+            .map_err(|_| WrongByteLengthError)
+            .map(u64::from_le_bytes)
     }
 }
 
@@ -159,8 +173,8 @@ mod tests {
         assert_eq!(0u32.sub_carry(0, false), (0, false));
         assert_eq!(0u32.sub_carry(0, true), (u32::MAX, true));
         assert_eq!(0u32.sub_carry(1, false), (u32::MAX, true));
-        assert_eq!(0u32.sub_carry(1, true), (u32::MAX-1, true));
-        assert_eq!(u64::MAX.sub_carry(1, false), (u64::MAX-1, false));
+        assert_eq!(0u32.sub_carry(1, true), (u32::MAX - 1, true));
+        assert_eq!(u64::MAX.sub_carry(1, false), (u64::MAX - 1, false));
     }
 
     #[test]
@@ -168,8 +182,8 @@ mod tests {
         assert_eq!(10u32.mul_carry(10u32, 0u32), (100, 0));
         assert_eq!(100u32.mul_carry(10u32, 1u32), (1001, 0));
         assert_eq!(u32::MAX.mul_carry(2u32, 1u32), (4294967295, 1));
-        
-        let (lhs, rhs, carry) = (u32::MAX/4, 200, 10);
+
+        let (lhs, rhs, carry) = (u32::MAX / 4, 200, 10);
         let (a, b) = lhs.mul_carry(rhs, carry);
         let mul = (a as u64) + ((b as u64) << 32);
         assert_eq!(mul, (lhs as u64) * (rhs as u64) + (carry as u64));

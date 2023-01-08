@@ -12,11 +12,12 @@ use crate::Integer;
 use zeroize::Zeroize;
 
 mod abstract_operations;
+mod general_reduction;
 mod montgomery;
 mod p25519;
-mod general_reduction;
 
-pub use abstract_operations::PrimeFieldOperations;
+pub use abstract_operations::{PrimeFieldOperations, F};
+pub use montgomery::{MontParameters, MontgomeryOperations};
 
 /// The interface for a field
 pub trait Field:
@@ -98,7 +99,7 @@ pub trait Field:
     }
 
     /// Exponentiation by a general exponent
-    fn exp(&self, exp: & impl Integer) -> Self;
+    fn exp(&self, exp: &impl Integer) -> Self;
 }
 
 /// An interface for field of prime order.
@@ -180,7 +181,7 @@ mod field_tests {
             }
         }
 
-        /* 
+        /*
         /// Test that the conversion from u128 to F is homomorphic
         fn test_from_u32(num_tests: usize) {
             let mut rng = StepRng::new(0, 1);
