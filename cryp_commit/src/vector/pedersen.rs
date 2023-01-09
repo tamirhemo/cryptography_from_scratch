@@ -113,5 +113,19 @@ mod tests {
         assert_ne!(commitment, GroupEd25519::generator::<ThreadRng>(None));
 
         assert!(PedEd::verify(&pp, &commitment, &[secret], &randomness).unwrap());
+
+        // A commitment to a vector
+        const D : usize = 10;
+        pub type PedEdVec = Pedersen<GroupEd25519, D>;
+        let mut input = [ScalarEd25519::zero(); D];
+        for i in 0..D {
+            input[i] = ScalarEd25519::rand(&mut rng);
+        }
+        let pp = PedEdVec::setup(&mut rng, 1).unwrap();
+        let (commitment, randomness) = PedEdVec::commit(&pp, &input, Some(&mut rng)).unwrap();
+
+        assert_ne!(commitment, GroupEd25519::generator::<ThreadRng>(None));
+
+        assert!(PedEdVec::verify(&pp, &commitment, &input, &randomness).unwrap());
     }
 }
