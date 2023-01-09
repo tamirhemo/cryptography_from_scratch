@@ -24,9 +24,6 @@ pub trait PrimeGroupConfig: CurveOperations + Debug + Sized + 'static + PartialE
     /// Gives a generator of the group.
     fn generator<R: Rng>(rng: Option<&mut R>) -> Self::Public;
 
-    /// Gives a random element of the group.
-    fn rand<R: Rng>(rng: R) -> Self::Public;
-
     /// Verifies that the `Public` element is valid group element.
     fn is_valid(input: &Self::Public) -> bool;
 

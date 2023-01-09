@@ -100,10 +100,6 @@ where
         Self::generator(rng)
     }
 
-    fn rand<R: Rng>(rng: R) -> Self::Public {
-        Self::rand(rng)
-    }
-
     fn batch_generators<R: Rng>(n: usize, rng: &mut R) -> Vec<Self::Public> {
         Self::batch_generators(n, rng)
     }
