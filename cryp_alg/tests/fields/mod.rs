@@ -8,6 +8,7 @@ mod test_montgomery {
     use super::*;
     use num_bigint::BigUint;
 
+    #[test]
     fn test_f5() {
         pub type F5 = F<MontgomeryOperations<1, F5Params>>;
         #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -71,6 +72,7 @@ mod test_montgomery {
         assert_eq!(four.as_int().limbs, [4]);
     }
 
+    #[test]
     fn test_f26459() {
         pub type F26459 = F<MontgomeryOperations<2, Fp6459Params32>>;
         #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -120,7 +122,7 @@ mod test_montgomery {
 
             const MODULUS: [u32; 2] = [4294967237, 4294967295];
 
-            const C: u32 = 59;
+            const C: [u32; 2] = [59, 0];
         }
 
         let zero = F26459Sol::zero();
@@ -171,7 +173,7 @@ mod test_montgomery {
                 18446744073709551615,
             ];
 
-            const C: u64 = u64::MAX;
+            const C: [u64; 3] = [u64::MAX, 0, 0];
         }
 
         let zero = Fp192Sol::zero();
@@ -192,6 +194,7 @@ mod test_montgomery {
         assert_eq!(x.inverse().unwrap() * x, one);
     }
 
+    #[test]
     fn test_fp192_mont() {
         // The NIST prime 2^192 - 2^64 - 1
         #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -235,6 +238,16 @@ mod test_montgomery {
             four.as_int(),
             <Fp192 as PrimeField>::BigInteger::from([4, 0, 0])
         );
+
+        let modulus_minus_one:[u64 ; 3] = [
+            18446744073709551615,
+            18446744073709551614,
+            18446744073709551615,
+        ];
+
+        let x = Fp192::from_int(&[3481, 494389, 0].into());
+        //assert_eq!(x.as_int().limbs, modulus_minus_one);
+        //assert_eq!(x + one, zero);
     }
 }
 
@@ -259,7 +272,7 @@ fn test_fp25519() {
             9223372036854775807,
         ];
 
-        const C: Self::Limb = 38;
+        const C: [Self::Limb; 4] = [38, 0, 0, 0];
     }
 
     let zero = Fp25519Sol::zero();

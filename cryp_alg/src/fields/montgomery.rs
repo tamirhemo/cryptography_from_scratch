@@ -368,11 +368,16 @@ mod tests {
         assert_eq!((n_mp * &modulus + 1u64) % &b, 0u64 % &b);
         let r2 = &r * &r;
         assert_eq!(
-            r2 % &modulus,
+            &r2 % &modulus,
             big_int_from_u64(Fp25519Params::R2.as_slice())
         );
+        assert_eq!(&BigUint::from(Fp25519Params::R2[0]), &r2);
 
         // check reduction
         assert_eq!((n_mont_red * &r) % &modulus, n_product % modulus);
+
+        let mont_mul = MontgomeryOperations::<4, Fp25519Params>::
+              montgomery_reduction(&(Int::from(a), product_r));
+
     }
 }

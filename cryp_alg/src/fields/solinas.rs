@@ -13,7 +13,7 @@ pub trait SolinasParameters<const N: usize>: 'static + Debug {
     const MODULUS: [Self::Limb; N];
 
     /// The constant C so that b^N = C mod p
-    const C: Self::Limb;
+    const C: [Self::Limb; N];
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -35,14 +35,14 @@ impl<const N: usize, P: SolinasParameters<N>> GeneralReduction<N> for SolinasRed
         // and repeadedly reduce the new a_h
 
         // c_vec = [C, 0, 0, .., 0]
-        let mut c_vec = LimbInt::from([Self::Limb::ZERO; N]);
-        c_vec.limbs[0] = P::C;
+        //let mut c_vec = LimbInt::from([Self::Limb::ZERO; N]);
+        let big_C = LimbInt::from(P::C);
 
         // a = a_h * c_vec + a_l
-        (a_l, a_h) = a_h.carrying_mul(c_vec, a_l);
+        (a_l, a_h) = a_h.carrying_mul(big_C, a_l);
         // deal with carry
         while a_h.limbs != [Self::Limb::ZERO; N] {
-            (a_l, a_h) = a_h.carrying_mul(c_vec, a_l);
+            (a_l, a_h) = a_h.carrying_mul(big_C, a_l);
         }
         let modules = LimbInt::from(Self::MODULUS);
 
@@ -86,7 +86,7 @@ mod tests {
                 9223372036854775807,
             ];
 
-            const C: Self::Limb = 38;
+            const C: [Self::Limb; 4] = [38, 0, 0, 0];
         }
 
         let mut rng = thread_rng();
@@ -129,8 +129,7 @@ mod tests {
         let n_red = big_int_from_u64(reduced.limbs.as_slice());
 
         // check c_vec multiplication
-        let mut c_vec = LimbInt::from([0; 4]);
-        c_vec.limbs[0] = Fp25519Params::C;
+        let mut c_vec = LimbInt::from(Fp25519Params::C);
 
         let (r, t) = Int::from(a).carrying_mul(Int::from(c_vec), Int::from(b));
         let n_r = big_int_from_u64(r.limbs.as_slice());

@@ -63,10 +63,23 @@ pub trait Group:
         for bit in bits {
             if bit {
                 res += base;
-                base.double();
+                base = base.double();
             } else {
                 base += res;
-                res.double();
+                res = res.double();
+            }
+        }
+        res
+    }
+
+    fn mul_int_non_ct(&self, scalar: & impl Integer) -> Self {
+        let mut res = Self::identity();
+        let base = *self;
+
+        for bit in Bits::into_iter_be(scalar) {
+            res = res.double();
+            if bit {
+                res += base;
             }
         }
         res

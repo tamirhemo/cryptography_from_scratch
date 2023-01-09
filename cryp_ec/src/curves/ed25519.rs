@@ -58,7 +58,7 @@ impl SolinasParameters<4usize> for Fp25519Params {
         9223372036854775807,
     ];
 
-    const C: u64 = 38;
+    const C: [u64; 4] = [38, 0, 0, 0];
 }
 
 impl TwistedEdwardsAM1 for Ed25519Parameters {
@@ -92,6 +92,7 @@ pub struct ScalarEd25519Parameters;
 impl MontParameters<4usize> for ScalarEd25519Parameters {
     type Limb = u64;
 
+    // 2^252+27742317777372353535851937790883648493
     const MODULUS: [Self::Limb; 4] = [
         6346243789798364141,
         1503914060200516822,
@@ -99,6 +100,7 @@ impl MontParameters<4usize> for ScalarEd25519Parameters {
         1152921504606846976,
     ];
 
+    // 7237005577332262213973186563042994240413239274941949949428319933631315875101
     const R: [Self::Limb; 4] = [
         15486807595281847581,
         14334777244411350896,
@@ -106,11 +108,12 @@ impl MontParameters<4usize> for ScalarEd25519Parameters {
         1152921504606846975,
     ];
 
+    // 1627715501170711445284395025044413883736156588369414752970002579683115011841
     const R2: [Self::Limb; 4] = [
-        8297226434800960841,
-        7720218508174777668,
-        5971159353574489177,
-        2223003849640556432,
+        11819153939886771969,
+        14991950615390032711,
+        14910419812499177061,
+        259310039853996605,
     ];
 
     const MP: Self::Limb = 15183074304973897243;
@@ -143,23 +146,38 @@ impl PrimeSubGroupConfig for EdwardsAM1UnifiedOperations<Ed25519Parameters> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cryp_std::rand::rngs::mock::StepRng;
+    use cryp_std::rand::thread_rng;
+    use cryp_std::rand::UniformRand;
 
     #[test]
     fn test_field() {
         let x = Fp25519::from_int(&[3293829, 232323, 4473653, 2323].into());
 
-        let power: [u64; 4] = [
+        let modulus_minus_one: [u64; 4] = [
             18446744073709551596,
             18446744073709551615,
             18446744073709551615,
             9223372036854775807,
         ];
+        assert_eq!(Fp25519::from_int(&modulus_minus_one.into()) + Fp25519::one(),
+        Fp25519::zero());
 
         assert_eq!(x + x, x.double());
         assert_eq!(x - x, Fp25519::zero());
         assert_eq!(x.exp(&[1200u64])*x.exp(&[250u64]), x.exp(&[1450u64]));
-        assert_eq!(x.exp(&power), Fp25519::one());
+        assert_eq!(x.exp(&modulus_minus_one), Fp25519::one());
+
+        let mut rng = thread_rng();
+        let y = Fp25519::from_int(&[
+            u64::rand(& mut rng), 
+            u64::rand(& mut rng), 
+            u64::rand(& mut rng), 
+            u64::rand(& mut rng)].into());
+
+        assert_eq!(y + y, y.double());
+        assert_eq!(y - y, Fp25519::zero());
+        assert_eq!(y.exp(&[1200u64])*y.exp(&[250u64]), y.exp(&[1450u64]));
+        assert_eq!(x.exp(&modulus_minus_one), Fp25519::one());
     }
 
     #[test]
@@ -175,19 +193,60 @@ mod tests {
     }
 
     #[test]
+    fn test_scalar_field() {
+
+
+        let one = ScalarEd25519::one();
+        let zero = ScalarEd25519::zero();
+        let x = ScalarEd25519::from_int(&[3293829, 232323, 4473653, 2323].into());
+
+        let mut rng = thread_rng();
+        let y = ScalarEd25519::from_int(&[
+            u64::rand(& mut rng), 
+            u64::rand(& mut rng), 
+            u64::rand(& mut rng), 
+            u64::rand(& mut rng)].into());
+
+        let modulus_minus_one : [u64; 4] = [
+            6346243789798364140,
+            1503914060200516822,
+            0,
+            1152921504606846976,
+        ];
+
+        let power = ScalarEd25519::from_int(&modulus_minus_one.into());
+        assert_eq!(power + one, zero);
+
+        //assert_eq!(x*x.inverse().unwrap(), one);
+    }
+
+    #[test]
     fn test_group() {
+
+        let x = Fp25519::from_int(&Ed25519Parameters::X.into());
+        let y = Fp25519::from_int(&Ed25519Parameters::Y.into());
         let affine_point = AffineEd25519::new(Affine::new(
-            Fp25519::from_int(&Ed25519Parameters::X.into()),
-            Fp25519::from_int(&Ed25519Parameters::Y.into()),
+            x,
+            y,
         ));
 
+        let one = Fp25519::one();
+        let d = Ed25519Parameters::D;
+
         let point = GroupEd25519::from(affine_point);
+
+        // check on curve
+        assert_eq!(-x.square() + y.square(), one + d * x.square() * y.square());
 
         let identity = GroupEd25519::identity();
 
         assert_eq!(point + point, point.double());
-        assert_eq!(point + identity, point);
-        assert_eq!(point.mul_int(&[1u32]), point);
+        assert_eq!(point.double().double(), point.double() + point.double());
+        assert_eq!(identity + point, point);
+        assert_eq!(identity + point.double(), point.double());
+        assert_eq!(point.mul_int(&[2u32]), point.double());
+        assert_eq!(x.square(), x.exp(&[2u32]));
+        assert_eq!(mul_int(&x, &[2u32]), x.exp(&[2u32]));
 
         let order : [u64; 4] = [
             6346243789798364141,
@@ -196,7 +255,29 @@ mod tests {
             1152921504606846976,
         ]; 
 
-        //assert_eq!(identity.as_public(), point.as_public());
-        //assert_eq!(point.mul_int(&[1u32]), point);
+        let order_minus_one : [u64; 4] = [
+            6346243789798364140,
+            1503914060200516822,
+            0,
+            1152921504606846976,
+        ]; 
+
+        assert_eq!(point.mul_int(&order), identity);
+        assert_eq!(point.mul_int(&order_minus_one), -point);
+        assert_eq!(point-point, identity);
+
+    }
+
+    fn mul_int(element : & Fp25519, scalar: & impl Integer) -> Fp25519 {
+        let mut res = Fp25519::one();
+        let base = *element;
+
+        for bit in super::Bits::into_iter_be(scalar) {
+            res = res.square();
+            if bit {
+                res *= base;
+            }
+        }
+        res
     }
 }

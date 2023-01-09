@@ -19,22 +19,6 @@ pub struct VariableBaseMSM;
 pub struct FixedBaseMSM;
 
 impl ScalarMul {
-    /// An implementation of the double-and-add algorithm for scalar multiplication.
-    ///
-    pub fn double_and_add<C: CurveOperations>(base: &C::Point, scalar: &impl Integer) -> C::Point {
-        let mut res = C::identity();
-        let mut base = *base;
-
-        let bits = Bits::into_iter_be(scalar);
-        for bit in bits {
-            if bit {
-                C::add_in_place(&mut res, &base);
-            }
-            C::double_in_place(&mut base);
-        }
-        res
-    }
-
     /// An implementation of the Montgomery ladder algorithm for scalar multiplication.
     ///
     /// This has the advantage of being constant-time.
