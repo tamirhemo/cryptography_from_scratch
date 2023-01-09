@@ -4,7 +4,7 @@ use cryp_std::rand::UniformRand;
 
 /// Limb is a trait which represents a single limb of a big integer.
 ///
-/// Currently, it is assumed implicitly that Limb behaves like a power of two when
+/// **Warning**: currently, it is assumed implicitly that Limb behaves like a power of two when
 /// it comes to coversion from bits.
 pub trait Limb:
     Sized + Copy + Clone + PartialEq + Eq + Debug + Send + Sync + Hash + UniformRand + PartialOrd + Ord
@@ -12,6 +12,7 @@ pub trait Limb:
     /// The type used to represent a carry bit.
     type Carry: PartialEq + Eq + Copy + Clone + Debug;
 
+    /// The number of bytes needed to represent this limb.
     const BYTES: usize;
     type Bytes: 'static + Sized + Copy + Clone + IntoIterator<Item = u8>;
 
@@ -20,22 +21,34 @@ pub trait Limb:
     const ZERO: Self;
     const ONE: Self;
 
-    ///  Calculates `self + rhs + carry` without the ability to overflow.
+    ///  Calculates `self + rhs + carry`, returning a carry bit.
     ///
     /// Performs "ternary addition" which takes in an extra bit to add, and may return an
     /// additional bit of overflow. This allows for chaining together multiple additions
     /// to create "big integers" which represent larger values.
     fn add_carry(&self, rhs: Self, carry: Self::Carry) -> (Self, Self::Carry);
 
-    ///  Calculates `self - rhs - carry` without the ability to overflow.
+    ///  Calculates `self - rhs - carry`, , returning a carry bit.
     fn sub_carry(&self, rhs: Self, carry: Self::Carry) -> (Self, Self::Carry);
 
+    /// Calculates `self * rhs + carry`
+    /// 
+    /// The result is an integer of length 2*N returned as a tuple (a_0, a_1) 
+    /// which represents the result as `a_0 + a_1 * b^N`.
     fn mul_carry(&self, rhs: Self, carry: Self) -> (Self, Self);
 
+    /// Conversion to bytes in big endian order.
     fn into_bytes_be(&self) -> Self::Bytes;
+    /// Conversion to bytes in little endian order.
     fn into_bytes_le(&self) -> Self::Bytes;
 
+    /// Constructs a limb from a sequence of bytes with the correct length.
+    /// 
+    /// The bytes are interpreted in big endian order.
     fn from_bytes_be(bytes: &[u8]) -> Result<Self, WrongByteLengthError>;
+    /// Constructs a limb from a sequence of bytes with the correct length.
+    /// 
+    /// The bytes are interpreted in little endian order.
     fn from_bytes_le(bytes: &[u8]) -> Result<Self, WrongByteLengthError>;
 }
 

@@ -2,7 +2,19 @@
 //!
 //! This module provides a type for big precision integers and methods for converting
 //! integers into iterators of bits.
+//! 
+//! Integers a represented as an array of limbs such as u32, u64, which are themselves just sequences
+//! of bits. The limbs are stored in little endian order, i.e. the least significant limb is stored
+//! at the lowest index. 
+//! 
+//! Limbs are abstracted to mean anything that supporrs the `Limb` trait which contains
+//! arithmetic operations with carrying. 
+//! 
+//! Given a Limb type `L` and a `usize` integer `N`, the type `LimbInt<L, N>` represents integers
+//! that can be presented as a sequence of `N` limbs of type `L`.
 //!
+//! This module provides a trait for a general Limb type which can support different add
+//! and carry operations. 
 //!
 
 mod limb;
@@ -11,6 +23,9 @@ mod limbint;
 pub use limb::Limb;
 pub use limbint::LimbInt;
 
+/// General interface for an integer type. 
+/// 
+/// Currently limited to just giving a sequence of limbs that is used for scalar multiplication.
 pub trait Integer: Sized {
     type Limb: Limb;
 

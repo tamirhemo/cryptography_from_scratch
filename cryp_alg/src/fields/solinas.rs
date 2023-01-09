@@ -90,60 +90,60 @@ mod tests {
         }
 
         for _ in 0..100 {
+            let mut rng = thread_rng();
+            let a: [u64; 4] = [
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+            ];
+            let b: [u64; 4] = [
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+            ];
 
-        let mut rng = thread_rng();
-        let a: [u64; 4] = [
-            u64::rand(&mut rng),
-            u64::rand(&mut rng),
-            u64::rand(&mut rng),
-            u64::rand(&mut rng),
-        ];
-        let b: [u64; 4] = [
-            u64::rand(&mut rng),
-            u64::rand(&mut rng),
-            u64::rand(&mut rng),
-            u64::rand(&mut rng),
-        ];
+            // check rng doesn't do anything weird
+            assert_ne!(a, b);
 
-        // check rng doesn't do anything weird
-        assert_ne!(a, b);
+            // check reduction is correct
+            let modulus = big_int_from_u64(Fp25519Params::MODULUS.as_slice());
+            let two255 = BigUint::from(2u64).pow(255);
+            assert_eq!(modulus, &two255 - 19u32);
 
-        // check reduction is correct
-        let modulus = big_int_from_u64(Fp25519Params::MODULUS.as_slice());
-        let two255 = BigUint::from(2u64).pow(255);
-        assert_eq!(modulus, &two255 - 19u32);
+            let (product_l, product_r) = Int::from(a).carrying_mul(Int::from(b), Int::zero());
+            let reduced = SolinasReduction::<4usize, Fp25519Params>::reduction_limbint(&(
+                product_l, product_r,
+            ));
 
-        let (product_l, product_r) = Int::from(a).carrying_mul(Int::from(b), Int::zero());
-        let reduced =
-            SolinasReduction::<4usize, Fp25519Params>::reduction_limbint(&(product_l, product_r));
+            let product: Vec<u64> = product_l
+                .limbs
+                .into_iter()
+                .chain(product_r.limbs.into_iter())
+                .collect();
 
-        let product: Vec<u64> = product_l
-            .limbs
-            .into_iter()
-            .chain(product_r.limbs.into_iter())
-            .collect();
+            let n_a = big_int_from_u64(a.as_slice());
+            let n_b = big_int_from_u64(b.as_slice());
+            let n_product = big_int_from_u64(product.as_slice());
+            assert_eq!(n_product, &n_a * &n_b);
 
-        let n_a = big_int_from_u64(a.as_slice());
-        let n_b = big_int_from_u64(b.as_slice());
-        let n_product = big_int_from_u64(product.as_slice());
-        assert_eq!(n_product, &n_a * &n_b);
+            let n_red = big_int_from_u64(reduced.limbs.as_slice());
 
-        let n_red = big_int_from_u64(reduced.limbs.as_slice());
+            // check c_vec multiplication
+            let mut c_vec = LimbInt::from(Fp25519Params::C);
 
-        // check c_vec multiplication
-        let mut c_vec = LimbInt::from(Fp25519Params::C);
+            let (r, t) = Int::from(a).carrying_mul(Int::from(c_vec), Int::from(b));
+            let n_r = big_int_from_u64(r.limbs.as_slice());
+            let n_t = big_int_from_u64(t.limbs.as_slice());
+            let n_c = BigUint::from(38u64);
+            assert_eq!(
+                n_r + &BigUint::from(2u64).pow(256) * &n_t,
+                &n_b + &n_a * n_c
+            );
 
-        let (r, t) = Int::from(a).carrying_mul(Int::from(c_vec), Int::from(b));
-        let n_r = big_int_from_u64(r.limbs.as_slice());
-        let n_t = big_int_from_u64(t.limbs.as_slice());
-        let n_c = BigUint::from(38u64);
-        assert_eq!(
-            n_r + &BigUint::from(2u64).pow(256) * &n_t,
-            &n_b + &n_a * n_c
-        );
-
-        // check reduction
-        assert_eq!(n_red % &modulus, n_product % modulus);
-    }
+            // check reduction
+            assert_eq!(n_red % &modulus, n_product % modulus);
+        }
     }
 }

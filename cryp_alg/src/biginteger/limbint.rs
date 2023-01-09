@@ -232,8 +232,6 @@ mod tests {
     #[test]
     fn test_bigunit_conversion() {
         let a_int = LimbInt64::from([1u32, 2u32]);
-        let a = BigUint::from(a_int);
-
         assert_eq!(BigUint::from(a_int), BigUint::from(1u64 + (2u64 << 32)));
     }
 

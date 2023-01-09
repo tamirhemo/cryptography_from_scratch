@@ -1,8 +1,7 @@
-
 use crate::edwards::*;
 use cryp_alg::ff::*;
-use cryp_std::vec::Vec;
 use cryp_std::rand::Rng;
+use cryp_std::vec::Vec;
 
 pub type Fp25519 = F<GeneralReductionOperations<4, SolinasReduction<4, Fp25519Params>>>;
 pub type ScalarEd25519 = F<MontgomeryOperations<4, ScalarEd25519Parameters>>;
@@ -128,11 +127,10 @@ impl PrimeSubGroupConfig for EdwardsAM1UnifiedOperations<Ed25519Parameters> {
     const COFACTOR: u32 = 8;
 
     fn generator<R: Rng>(rng: Option<&mut R>) -> Self::Affine {
-
         let x = Fp25519::from_int(&Ed25519Parameters::X.into());
         let y = Fp25519::from_int(&Ed25519Parameters::Y.into());
         let affine_point = Self::Affine::new(x, y);
-        
+
         let mut point = Self::Point::from(affine_point);
         if let Some(rng) = rng {
             let scalar = ScalarEd25519::rand(rng);
@@ -141,11 +139,8 @@ impl PrimeSubGroupConfig for EdwardsAM1UnifiedOperations<Ed25519Parameters> {
         point.into_affine().unwrap()
     }
 
-    fn batch_generators<R: Rng>(
-        n: usize,
-        rng: &mut R,
-    ) -> cryp_std::vec::Vec<Self::Affine> {
-        let mut generators = Vec::with_capacity(n+1);
+    fn batch_generators<R: Rng>(n: usize, rng: &mut R) -> cryp_std::vec::Vec<Self::Affine> {
+        let mut generators = Vec::with_capacity(n + 1);
 
         for _ in 0..n {
             generators.push(<Self as PrimeSubGroupConfig>::generator(Some(rng)));
@@ -171,24 +166,30 @@ mod tests {
             18446744073709551615,
             9223372036854775807,
         ];
-        assert_eq!(Fp25519::from_int(&modulus_minus_one.into()) + Fp25519::one(),
-        Fp25519::zero());
+        assert_eq!(
+            Fp25519::from_int(&modulus_minus_one.into()) + Fp25519::one(),
+            Fp25519::zero()
+        );
 
         assert_eq!(x + x, x.double());
         assert_eq!(x - x, Fp25519::zero());
-        assert_eq!(x.exp(&[1200u64])*x.exp(&[250u64]), x.exp(&[1450u64]));
+        assert_eq!(x.exp(&[1200u64]) * x.exp(&[250u64]), x.exp(&[1450u64]));
         assert_eq!(x.exp(&modulus_minus_one), Fp25519::one());
 
         let mut rng = thread_rng();
-        let y = Fp25519::from_int(&[
-            u64::rand(& mut rng), 
-            u64::rand(& mut rng), 
-            u64::rand(& mut rng), 
-            u64::rand(& mut rng)].into());
+        let y = Fp25519::from_int(
+            &[
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+            ]
+            .into(),
+        );
 
         assert_eq!(y + y, y.double());
         assert_eq!(y - y, Fp25519::zero());
-        assert_eq!(y.exp(&[1200u64])*y.exp(&[250u64]), y.exp(&[1450u64]));
+        assert_eq!(y.exp(&[1200u64]) * y.exp(&[250u64]), y.exp(&[1450u64]));
         assert_eq!(x.exp(&modulus_minus_one), Fp25519::one());
     }
 
@@ -206,42 +207,40 @@ mod tests {
 
     #[test]
     fn test_scalar_field() {
-
-
         let one = ScalarEd25519::one();
         let zero = ScalarEd25519::zero();
         let x = ScalarEd25519::from_int(&[3293829, 232323, 4473653, 2323].into());
 
         let mut rng = thread_rng();
-        let y = ScalarEd25519::from_int(&[
-            u64::rand(& mut rng), 
-            u64::rand(& mut rng), 
-            u64::rand(& mut rng), 
-            u64::rand(& mut rng)].into());
+        let y = ScalarEd25519::from_int(
+            &[
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+            ]
+            .into(),
+        );
 
-        let modulus_minus_one : [u64; 4] = [
+        let modulus_minus_one: [u64; 4] = [
             6346243789798364140,
             1503914060200516822,
             0,
             1152921504606846976,
         ];
-        
+
         let power = ScalarEd25519::from_int(&modulus_minus_one.into());
         assert_eq!(power + one, zero);
 
-        assert_eq!(x*x.inverse().unwrap(), one);
-        assert_eq!(x.inverse().unwrap(), x.exp(&(power-one).as_int()));
+        assert_eq!(x * x.inverse().unwrap(), one);
+        assert_eq!(x.inverse().unwrap(), x.exp(&(power - one).as_int()));
     }
 
     #[test]
     fn test_group() {
-
         let x = Fp25519::from_int(&Ed25519Parameters::X.into());
         let y = Fp25519::from_int(&Ed25519Parameters::Y.into());
-        let affine_point = AffineEd25519::new(Affine::new(
-            x,
-            y,
-        ));
+        let affine_point = AffineEd25519::new(Affine::new(x, y));
 
         assert_eq!(affine_point.point.x, x);
         assert_eq!(affine_point.point.y, y);
@@ -254,12 +253,11 @@ mod tests {
         // check on curve
         assert_eq!(-x.square() + y.square(), one + d * x.square() * y.square());
 
-        // check random elements 
+        // check random elements
         let mut rng = thread_rng();
         let generators = GroupEC::batch_generators(10, &mut rng);
 
         assert_ne!(generators[8], generators[4]);
-        
 
         let identity = GroupEd25519::identity();
         assert_ne!(GroupEC::from(generators[8]), identity);
@@ -270,29 +268,28 @@ mod tests {
         assert_eq!(identity + point.double(), point.double());
         assert_eq!(point.mul_int(&[2u32]), point.double());
         assert_eq!(x.square(), x.exp(&[2u32]));
-        assert_eq!(x*&(one + one), x.double());
+        assert_eq!(x * &(one + one), x.double());
 
-        let order : [u64; 4] = [
+        let order: [u64; 4] = [
             6346243789798364141,
             1503914060200516822,
             0,
             1152921504606846976,
-        ]; 
+        ];
 
-        let order_minus_one : [u64; 4] = [
+        let order_minus_one: [u64; 4] = [
             6346243789798364140,
             1503914060200516822,
             0,
             1152921504606846976,
-        ]; 
+        ];
 
         assert_eq!(point.mul_int(&order), identity);
         assert_eq!(point.mul_int(&order_minus_one), -point);
-        assert_eq!(point-point, identity);
+        assert_eq!(point - point, identity);
 
         let mod_minus_one = ScalarEd25519::from_int(&order_minus_one.into());
-        assert_ne!(point*&mod_minus_one, point);
-        assert_eq!(point*&mod_minus_one, -point);
-
+        assert_ne!(point * &mod_minus_one, point);
+        assert_eq!(point * &mod_minus_one, -point);
     }
 }

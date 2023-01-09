@@ -37,7 +37,7 @@ pub trait PrimeGroupConfig: CurveOperations + Debug + Sized + 'static + PartialE
     ///
     /// The generators should be independent in the sense that the mutual
     /// discrete logarithms are not known.
-    fn batch_generators<R: Rng>(n: usize, rng: & mut R) -> Vec<Self::Public>;
+    fn batch_generators<R: Rng>(n: usize, rng: &mut R) -> Vec<Self::Public>;
 
     /// Scalar multiplication in constant time.
     ///
@@ -130,7 +130,7 @@ impl<P: PrimeGroupConfig> PrimeGroup for GroupEC<P> {
         PublicEC::new(P::generator(rng))
     }
 
-    fn batch_generators<R : Rng>(n: usize, rng: &mut R) -> Vec<Self::Public> {
+    fn batch_generators<R: Rng>(n: usize, rng: &mut R) -> Vec<Self::Public> {
         P::batch_generators(n, rng)
             .into_iter()
             .map(PublicEC::new)

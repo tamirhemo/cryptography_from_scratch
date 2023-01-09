@@ -92,17 +92,15 @@ impl<G: PrimeGroup, const N: usize> VCPublicParameters for PedersenPP<G, N> {
     }
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use cryp_ec::curves::edwards25519::*;
-    use cryp_std::rand::{thread_rng, rngs::ThreadRng};
+    use cryp_std::rand::{rngs::ThreadRng, thread_rng};
     fn test_pedersen() {
         let mut rng = thread_rng();
 
-        pub type PedEd = Pedersen<GroupEd25519, 1>; 
+        pub type PedEd = Pedersen<GroupEd25519, 1>;
 
         // our secret
         let secret = ScalarEd25519::rand(&mut rng);
@@ -115,7 +113,7 @@ mod tests {
         assert!(PedEd::verify(&pp, &commitment, &[secret], &randomness).unwrap());
 
         // A commitment to a vector
-        const D : usize = 10;
+        const D: usize = 10;
         pub type PedEdVec = Pedersen<GroupEd25519, D>;
         let mut input = [ScalarEd25519::zero(); D];
         for i in 0..D {

@@ -22,7 +22,7 @@ pub trait PrimeSubGroupConfig: CurveOperations + Debug + Sized + 'static + Eq + 
     ///
     /// The generators should be independent in the sense that the mutual
     /// discrete logarithms are not known.
-    fn batch_generators<R :Rng>(n: usize, rng: &mut R) -> Vec<Self::Affine>;
+    fn batch_generators<R: Rng>(n: usize, rng: &mut R) -> Vec<Self::Affine>;
 
     /// Scalar multiplication in constant time.
     ///

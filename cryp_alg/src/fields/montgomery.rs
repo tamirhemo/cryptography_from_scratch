@@ -34,12 +34,12 @@ impl<const N: usize, P: MontParameters<N>> MontgomeryOperations<N, P> {
         element: &(LimbInt<P::Limb, N>, LimbInt<P::Limb, N>),
     ) -> LimbInt<P::Limb, N> {
         // algorithm 14.32 in Handbook of Applied Cryptography
-        // The idea is to compute (a  + um) / b^n with u = a* m' 
+        // The idea is to compute (a  + um) / b^n with u = a* m'
 
         let (mut a_l, mut a_r) = (element.0, element.1);
 
         let modulus = LimbInt::from(P::MODULUS);
-       
+
         let mut c = P::Limb::NO;
         for i in 0..N {
             let u = a_l.limbs[i].mul_carry(P::MP, P::Limb::ZERO).0;
@@ -52,9 +52,9 @@ impl<const N: usize, P: MontParameters<N>> MontgomeryOperations<N, P> {
             // Now add it to a
             (a_l, c) = a_l.carrying_add(c_l, c);
             (a_r, c) = a_r.carrying_add(c_h, c);
-        } 
+        }
         // deal with final carry
-        if c !=P::Limb::NO {
+        if c != P::Limb::NO {
             a_r = a_r.carrying_add(P::R.into(), P::Limb::NO).0;
         }
         assert_eq!(a_l.limbs, [P::Limb::ZERO; N]);
@@ -316,68 +316,69 @@ mod tests {
                 18446744073709551615,
                 9223372036854775807,
             ];
-        
+
             const R: [Self::Limb; 4] = [38, 0, 0, 0];
-        
+
             const R2: [Self::Limb; 4] = [1444, 0, 0, 0];
-            const MP: Self::Limb = 9708812670373448219; 
+            const MP: Self::Limb = 9708812670373448219;
         }
 
         let mut rng = thread_rng();
 
         for _ in 0..100 {
-        let a: [u64; 4] = [
-            u64::rand(&mut rng),
-            u64::rand(&mut rng),
-            u64::rand(&mut rng),
-            u64::rand(&mut rng),
-        ];
-        let b: [u64; 4] = [
-            u64::rand(&mut rng),
-            u64::rand(&mut rng),
-            u64::rand(&mut rng),
-            u64::rand(&mut rng),
-        ];
+            let a: [u64; 4] = [
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+            ];
+            let b: [u64; 4] = [
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+                u64::rand(&mut rng),
+            ];
 
-        // check rng doesn't do anything weird
-        assert_ne!(a, b);
+            // check rng doesn't do anything weird
+            assert_ne!(a, b);
 
-        // check reduction is correct
-        let modulus = big_int_from_u64(Fp25519Params::MODULUS.as_slice());
+            // check reduction is correct
+            let modulus = big_int_from_u64(Fp25519Params::MODULUS.as_slice());
 
-        let (product_l, product_r) = Int::from(a).carrying_mul(Int::from(b), Int::zero());
-        let mont_red =
-            MontgomeryOperations::<4, Fp25519Params>::montgomery_reduction(&(product_l, product_r));
+            let (product_l, product_r) = Int::from(a).carrying_mul(Int::from(b), Int::zero());
+            let mont_red = MontgomeryOperations::<4, Fp25519Params>::montgomery_reduction(&(
+                product_l, product_r,
+            ));
 
-        let product: Vec<u64> = product_l
-            .limbs
-            .into_iter()
-            .chain(product_r.limbs.into_iter())
-            .collect();
+            let product: Vec<u64> = product_l
+                .limbs
+                .into_iter()
+                .chain(product_r.limbs.into_iter())
+                .collect();
 
-        let n_a = big_int_from_u64(a.as_slice());
-        let n_b = big_int_from_u64(b.as_slice());
-        let n_product = big_int_from_u64(product.as_slice());
-        assert_eq!(n_product, n_a * n_b);
+            let n_a = big_int_from_u64(a.as_slice());
+            let n_b = big_int_from_u64(b.as_slice());
+            let n_product = big_int_from_u64(product.as_slice());
+            assert_eq!(n_product, n_a * n_b);
 
-        let n_mont_red = big_int_from_u64(mont_red.limbs.as_slice());
-        let r = big_int_from_u64(Fp25519Params::R.as_slice());
+            let n_mont_red = big_int_from_u64(mont_red.limbs.as_slice());
+            let r = big_int_from_u64(Fp25519Params::R.as_slice());
 
-        // verify montogomery parameters
-        let two256 = BigUint::from(2u64).pow(256);
-        assert_eq!(&r % &modulus, two256 % &modulus);
-        let n_mp = big_int_from_u64(&[Fp25519Params::MP]);
-        let b = BigUint::from(2u64).pow(64);
-        assert_eq!((n_mp * &modulus + 1u64) % &b, 0u64 % &b);
-        let r2 = &r * &r;
-        assert_eq!(
-            &r2 % &modulus,
-            big_int_from_u64(Fp25519Params::R2.as_slice())
-        );
-        assert_eq!(&BigUint::from(Fp25519Params::R2[0]), &r2);
+            // verify montogomery parameters
+            let two256 = BigUint::from(2u64).pow(256);
+            assert_eq!(&r % &modulus, two256 % &modulus);
+            let n_mp = big_int_from_u64(&[Fp25519Params::MP]);
+            let b = BigUint::from(2u64).pow(64);
+            assert_eq!((n_mp * &modulus + 1u64) % &b, 0u64 % &b);
+            let r2 = &r * &r;
+            assert_eq!(
+                &r2 % &modulus,
+                big_int_from_u64(Fp25519Params::R2.as_slice())
+            );
+            assert_eq!(&BigUint::from(Fp25519Params::R2[0]), &r2);
 
-        // check reduction
-        assert_eq!((n_mont_red * &r) % &modulus, n_product % modulus);
+            // check reduction
+            assert_eq!((n_mont_red * &r) % &modulus, n_product % modulus);
+        }
     }
-}
 }

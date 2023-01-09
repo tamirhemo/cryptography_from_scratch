@@ -239,7 +239,7 @@ mod test_montgomery {
             <Fp192 as PrimeField>::BigInteger::from([4, 0, 0])
         );
 
-        let modulus_minus_one:[u64 ; 3] = [
+        let modulus_minus_one: [u64; 3] = [
             18446744073709551615,
             18446744073709551614,
             18446744073709551615,
@@ -253,10 +253,7 @@ mod test_montgomery {
 
 #[test]
 fn test_fp25519() {
-
-
-    pub type Fp25519Sol =
-    F<GeneralReductionOperations<4, SolinasReduction<4usize, Fp25519Params>>>;
+    pub type Fp25519Sol = F<GeneralReductionOperations<4, SolinasReduction<4usize, Fp25519Params>>>;
     /// Parameters for the prime field of size 2^255 - 19
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct Fp25519Params;
@@ -283,7 +280,7 @@ fn test_fp25519() {
     let x = Fp25519Sol::from_int(&[3481, 494389, 0, 0].into());
     assert_eq!(x * x, x.square());
 
-    let modulus_minus_two : [u64; 4] = [
+    let modulus_minus_two: [u64; 4] = [
         18446744073709551595,
         18446744073709551615,
         18446744073709551615,
@@ -293,5 +290,4 @@ fn test_fp25519() {
     assert_eq!(Fp25519Sol::from_int(&modulus_minus_two.into()) + two, zero);
     assert_eq!(x.inverse().unwrap(), x.exp(&modulus_minus_two));
     assert_eq!(x * x.inverse().unwrap(), one);
-
 }

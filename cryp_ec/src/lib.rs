@@ -10,11 +10,10 @@ mod models;
 
 mod common {
     use super::*;
-    pub use cryp_alg::{Group, PrimeGroup, Field};
+    pub use cryp_alg::{Field, Group, PrimeGroup};
     pub use models::{
-        Coordinates,
-        Affine, ExtendedPoint, GroupEC, JacobianPoint, PrimeGroupConfig, PrimeSubGroupConfig,
-        Projective, PublicEC,
+        Affine, Coordinates, ExtendedPoint, GroupEC, JacobianPoint, PrimeGroupConfig,
+        PrimeSubGroupConfig, Projective, PublicEC,
     };
 }
 
@@ -29,5 +28,3 @@ pub mod edwards {
     pub use common::*;
     pub use models::{EdwardsAM1UnifiedOperations, TwistedEdwardsAM1};
 }
-
-
