@@ -8,14 +8,14 @@
 
 ## Basic usage
 
-## Finite Field Arithmetic 
+### Finite Field Arithmetic 
 
 ```rust
 use cryp_alg::ff::*;
 
 ```
 
-## Elliptic curves
+### Elliptic curves
 Currently we have an implementation of the [EdSDA Edwards cuve](https://www.rfc-editor.org/rfc/rfc8032#page-16) over the prime field modulus `2^255 - 19`.
 
 We can get a random generator as follows:
@@ -48,6 +48,6 @@ We can also check that the group element has the correct order.
     assert_ne!(identity, g*&(order-one));
 ```
 
-## Pedersen Commitment 
+### Commitment Schemes
 
 Pedersen commitments are agnostic to the underlying group. To define a Pedersen commitment.
