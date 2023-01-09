@@ -366,7 +366,7 @@ mod tests {
 
     #[test]
     fn test_bigint() {
-        use rand::thread_rng;
+        use cryp_std::rand::thread_rng;
         let mut rng = thread_rng();
         use crate::helper::big_int_from_u64;
         use cryp_std::rand::UniformRand;

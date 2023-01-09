@@ -25,6 +25,7 @@ pub mod ff {
         Field, GeneralReduction, GeneralReductionOperations, MontParameters, MontgomeryOperations,
         PrimeField, PrimeFieldOperations, SolinasParameters, SolinasReduction, F,
     };
+    pub use cryp_std::rand::UniformRand;
 }
 
 #[cfg(test)]

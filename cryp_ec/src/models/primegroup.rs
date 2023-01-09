@@ -22,7 +22,7 @@ pub trait PrimeGroupConfig: CurveOperations + Debug + Sized + 'static + PartialE
     type ScalarField: PrimeField;
 
     /// Gives a generator of the group.
-    fn generator<R: Rng>(rng: Option<R>) -> Self::Public;
+    fn generator<R: Rng>(rng: Option<&mut R>) -> Self::Public;
 
     /// Gives a random element of the group.
     fn rand<R: Rng>(rng: R) -> Self::Public;
@@ -40,7 +40,7 @@ pub trait PrimeGroupConfig: CurveOperations + Debug + Sized + 'static + PartialE
     ///
     /// The generators should be independent in the sense that the mutual
     /// discrete logarithms are not known.
-    fn batch_generators(n: usize, rng: Option<impl Rng>) -> Vec<Self::Public>;
+    fn batch_generators<R: Rng>(n: usize, rng: & mut R) -> Vec<Self::Public>;
 
     /// Scalar multiplication in constant time.
     ///
@@ -129,11 +129,11 @@ impl<P: PrimeGroupConfig> PrimeGroup for GroupEC<P> {
         P::as_public(&self.point).map(PublicEC::new)
     }
 
-    fn generator<R: Rng>(rng: Option<R>) -> Self::Public {
+    fn generator<R: Rng>(rng: Option<&mut R>) -> Self::Public {
         PublicEC::new(P::generator(rng))
     }
 
-    fn batch_generators(n: usize, rng: Option<impl Rng>) -> Vec<Self::Public> {
+    fn batch_generators<R : Rng>(n: usize, rng: &mut R) -> Vec<Self::Public> {
         P::batch_generators(n, rng)
             .into_iter()
             .map(PublicEC::new)

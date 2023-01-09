@@ -16,15 +16,13 @@ pub trait PrimeSubGroupConfig: CurveOperations + Debug + Sized + 'static + Eq + 
     const COFACTOR: u32;
 
     /// Gives a generator of the group.
-    fn generator(rng: Option<impl Rng>) -> Self::Affine;
-    /// Gives a random element of the group.
-    fn rand(rng: impl Rng) -> Self::Affine;
+    fn generator<R: Rng>(rng: Option<&mut R>) -> Self::Affine;
 
     /// Gives a vector of generators of the group of size `n`.
     ///
     /// The generators should be independent in the sense that the mutual
     /// discrete logarithms are not known.
-    fn batch_generators(n: usize, rng: Option<impl Rng>) -> Vec<Self::Affine>;
+    fn batch_generators<R :Rng>(n: usize, rng: &mut R) -> Vec<Self::Affine>;
 
     /// Scalar multiplication in constant time.
     ///
@@ -98,7 +96,7 @@ where
         T::add_affine_in_place(lhs, rhs)
     }
 
-    fn generator<R: Rng>(rng: Option<R>) -> Self::Public {
+    fn generator<R: Rng>(rng: Option<&mut R>) -> Self::Public {
         Self::generator(rng)
     }
 
@@ -106,7 +104,7 @@ where
         Self::rand(rng)
     }
 
-    fn batch_generators(n: usize, rng: Option<impl Rng>) -> Vec<Self::Public> {
+    fn batch_generators<R: Rng>(n: usize, rng: &mut R) -> Vec<Self::Public> {
         Self::batch_generators(n, rng)
     }
 

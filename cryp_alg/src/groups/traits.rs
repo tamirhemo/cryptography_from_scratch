@@ -125,7 +125,7 @@ pub trait PrimeGroup:
         + for<'a> Add<&'a Self::Public, Output = Self>;
 
     /// Gives a generator for the group.
-    fn generator<R: Rng>(rng: Option<R>) -> Self::Public;
+    fn generator<R: Rng>(rng: Option<&mut R>) -> Self::Public;
 
     /// Verifies that a given `Public` type is a valid element of the group
     fn is_valid(input: &Self::Public) -> bool;
@@ -137,7 +137,7 @@ pub trait PrimeGroup:
     ///
     /// The generators should be independent in the sense that the mutual
     /// discrete logarithms are not known.
-    fn batch_generators(n: usize, rng: Option<impl Rng>) -> Vec<Self::Public>;
+    fn batch_generators<R: Rng>(n: usize, rng: &mut R) -> Vec<Self::Public>;
 
     /// Multi-scalar multiplication with a vector of secret scalars.
     ///

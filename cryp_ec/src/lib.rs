@@ -5,13 +5,14 @@
 //! This library provides a set of traits and implementations for elliptic curves.
 //!
 
-mod curves;
+pub mod curves;
 mod models;
 
 mod common {
     use super::*;
     pub use cryp_alg::{Group, PrimeGroup};
     pub use models::{
+        Coordinates,
         Affine, ExtendedPoint, GroupEC, JacobianPoint, PrimeGroupConfig, PrimeSubGroupConfig,
         Projective, PublicEC,
     };
@@ -26,5 +27,7 @@ pub mod weierstrass {
 pub mod edwards {
     use super::*;
     pub use common::*;
-    pub use models::{EdwardsAM1UnifiedOperations, TwistedEdwardsAM1};
+    pub use models::{EdwardsAM1UnifiedOperations, TwistedEdwardsAM1, };
 }
+
+

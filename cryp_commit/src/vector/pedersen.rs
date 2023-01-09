@@ -28,7 +28,7 @@ impl<G: PrimeGroup, const N: usize> VectorCommitment<[G::ScalarField; N]> for Pe
         max_dim: usize,
     ) -> Result<Self::PublicParameters, Self::Error> {
         assert!(max_dim == N);
-        let group_elements = G::batch_generators(N + 1, Some(rng));
+        let group_elements = G::batch_generators(N + 1, rng);
         assert!(group_elements.len() == N + 1);
 
         // Should succeed because of assert
@@ -89,5 +89,29 @@ impl<G: PrimeGroup, const N: usize> VectorCommitment<[G::ScalarField; N]> for Pe
 impl<G: PrimeGroup, const N: usize> VCPublicParameters for PedersenPP<G, N> {
     fn max_dim(&self) -> usize {
         N
+    }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use cryp_ec::curves::edwards25519::*;
+    use cryp_std::rand::{thread_rng, rngs::ThreadRng};
+    fn test_pedersen() {
+        let mut rng = thread_rng();
+
+        pub type PedEd = Pedersen<GroupEd25519, 1>; 
+
+        // our secret
+        let secret = ScalarEd25519::rand(&mut rng);
+
+        let pp = PedEd::setup(&mut rng, 1).unwrap();
+        let (commitment, randomness) = PedEd::commit(&pp, &[secret], Some(&mut rng)).unwrap();
+
+        assert_ne!(commitment, GroupEd25519::generator::<ThreadRng>(None));
+
+        assert!(PedEd::verify(&pp, &commitment, &[secret], &randomness).unwrap());
     }
 }

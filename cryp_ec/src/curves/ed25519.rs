@@ -1,5 +1,8 @@
-use crate::edwards::*;
+
+use crate::{edwards::*, models::Coordinates};
 use cryp_alg::ff::*;
+use cryp_std::vec::Vec;
+use cryp_std::rand::Rng;
 
 pub type Fp25519 = F<GeneralReductionOperations<4, SolinasReduction<4, Fp25519Params>>>;
 pub type ScalarEd25519 = F<MontgomeryOperations<4, ScalarEd25519Parameters>>;
@@ -124,22 +127,31 @@ impl PrimeSubGroupConfig for EdwardsAM1UnifiedOperations<Ed25519Parameters> {
 
     const COFACTOR: u32 = 8;
 
-    fn generator(rng: Option<impl cryp_std::rand::Rng>) -> Self::Affine {
-        Self::Affine::new(
-            Fp25519::from_int(&Ed25519Parameters::X.into()),
-            Fp25519::from_int(&Ed25519Parameters::Y.into()),
-        )
+    fn generator<R: Rng>(rng: Option<&mut R>) -> Self::Affine {
+
+        let x = Fp25519::from_int(&Ed25519Parameters::X.into());
+        let y = Fp25519::from_int(&Ed25519Parameters::Y.into());
+        let affine_point = Self::Affine::new(x, y);
+        
+        let mut point = Self::Point::from(affine_point);
+        if let Some(rng) = rng {
+            let scalar = ScalarEd25519::rand(rng);
+            point = <Self as PrimeSubGroupConfig>::scalar_mul(&point, &scalar);
+        }
+        point.into_affine().unwrap()
     }
 
-    fn rand(rng: impl cryp_std::rand::Rng) -> Self::Affine {
-        Self::Affine::new(Fp25519::one(), Fp25519::one())
-    }
-
-    fn batch_generators(
+    fn batch_generators<R: Rng>(
         n: usize,
-        rng: Option<impl cryp_std::rand::Rng>,
+        rng: &mut R,
     ) -> cryp_std::vec::Vec<Self::Affine> {
-        cryp_std::vec::Vec::new()
+        let mut generators = Vec::with_capacity(n+1);
+
+        for _ in 0..n {
+            generators.push(<Self as PrimeSubGroupConfig>::generator(Some(rng)));
+        }
+
+        generators
     }
 }
 
@@ -239,7 +251,15 @@ mod tests {
         // check on curve
         assert_eq!(-x.square() + y.square(), one + d * x.square() * y.square());
 
+        // check random elements 
+        let mut rng = thread_rng();
+        let generators = GroupEC::batch_generators(10, &mut rng);
+
+        assert_ne!(generators[8], generators[4]);
+        
+
         let identity = GroupEd25519::identity();
+        assert_ne!(GroupEC::from(generators[8]), identity);
 
         assert_eq!(point + point, point.double());
         assert_eq!(point.double().double(), point.double() + point.double());

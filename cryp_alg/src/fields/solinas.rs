@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn test_solinas_reduction_25519() {
-        use rand::thread_rng;
+        use cryp_std::rand::thread_rng;
         type Int = LimbInt<u64, 4>;
 
         /// Parameters for the prime field of size 2^255 - 19

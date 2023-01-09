@@ -194,7 +194,7 @@ mod tests {
 
     #[test]
     fn test_montgomery_reduction_u32() {
-        use rand::thread_rng;
+        use cryp_std::rand::thread_rng;
         type Int = LimbInt<u32, 4>;
         let mut rng = thread_rng();
         let a: [u32; 4] = [
@@ -238,7 +238,7 @@ mod tests {
 
     #[test]
     fn test_montgomery_reduction_u64() {
-        use rand::thread_rng;
+        use cryp_std::rand::thread_rng;
         type Int = LimbInt<u64, 2>;
 
         #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -299,7 +299,7 @@ mod tests {
 
     #[test]
     fn test_montgomery_reduction_25519() {
-        use rand::thread_rng;
+        use cryp_std::rand::thread_rng;
         type Int = LimbInt<u64, 4>;
 
         /// Parameters for the prime field Fp25519
@@ -375,9 +375,5 @@ mod tests {
 
         // check reduction
         assert_eq!((n_mont_red * &r) % &modulus, n_product % modulus);
-
-        let mont_mul = MontgomeryOperations::<4, Fp25519Params>::
-              montgomery_reduction(&(Int::from(a), product_r));
-
     }
 }

@@ -168,7 +168,7 @@ mod tests {
 
     #[test]
     fn test_mul_carry() {
-        use rand::thread_rng;
+        use cryp_std::rand::thread_rng;
         let mut rng = thread_rng();
         use cryp_std::rand::UniformRand;
         for _ in 0..100 {
