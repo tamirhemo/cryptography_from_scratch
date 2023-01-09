@@ -213,11 +213,12 @@ mod tests {
             0,
             1152921504606846976,
         ];
-
+        
         let power = ScalarEd25519::from_int(&modulus_minus_one.into());
         assert_eq!(power + one, zero);
 
-        //assert_eq!(x*x.inverse().unwrap(), one);
+        assert_eq!(x*x.inverse().unwrap(), one);
+        assert_eq!(x.inverse().unwrap(), x.exp(&(power-one).as_int()));
     }
 
     #[test]
@@ -247,6 +248,7 @@ mod tests {
         assert_eq!(point.mul_int(&[2u32]), point.double());
         assert_eq!(x.square(), x.exp(&[2u32]));
         assert_eq!(mul_int(&x, &[2u32]), x.exp(&[2u32]));
+        assert_eq!(x*&(one + one), x.double());
 
         let order : [u64; 4] = [
             6346243789798364141,
@@ -266,18 +268,9 @@ mod tests {
         assert_eq!(point.mul_int(&order_minus_one), -point);
         assert_eq!(point-point, identity);
 
-    }
+        let mod_minus_one = ScalarEd25519::from_int(&order_minus_one.into());
+        assert_ne!(point*&mod_minus_one, point);
+        assert_eq!(point*&mod_minus_one, -point);
 
-    fn mul_int(element : & Fp25519, scalar: & impl Integer) -> Fp25519 {
-        let mut res = Fp25519::one();
-        let base = *element;
-
-        for bit in super::Bits::into_iter_be(scalar) {
-            res = res.square();
-            if bit {
-                res *= base;
-            }
-        }
-        res
     }
 }
