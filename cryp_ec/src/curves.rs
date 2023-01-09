@@ -28,6 +28,25 @@
 //!    assert_ne!(g, identity);
 //! 
 //!    ```
+//!  We can check that the given element is on the curve:
+//! 
+//! ```rust
+//!   # use cryp_ec::curves::edwards25519::*;
+//!   # use cryp_std::rand::thread_rng;
+//!   # 
+//!   # let mut rng = thread_rng();
+//!   # let g = GroupEd25519::generator(Some(&mut rng));
+//!    let x = g.point.x;
+//!    let y = g.point.y;
+//! 
+//!    // Get the parameters:   
+//!    let one = Fp25519::one();
+//!    let d = Ed25519Parameters::D;
+//!    
+//!    // check -x^2 + y^2 = 1 + d*x^2*y^2
+//!    assert_eq!(-x.square() + y.square(), one + d * x.square() * y.square());
+//! 
+//! ```
 //! 
 //!  We can also check that the group element has the correct order.
 //! 
@@ -57,6 +76,6 @@ mod ed25519;
 
 pub mod edwards25519 {
     use super::*;
-    pub use ed25519::{GroupEd25519, Fp25519, ScalarEd25519};
-    pub use crate::common::*;
+    pub use ed25519::{GroupEd25519, Fp25519, ScalarEd25519, Ed25519Parameters};
+    pub use crate::edwards::*;
 }

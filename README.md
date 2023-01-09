@@ -38,6 +38,20 @@ The generator is given in affine coordinates.If we want to perform group operati
     assert_eq!(g, g + identity);
     assert_ne!(g, identity);
 ```
+
+We can check that the given element is on the curve:
+```rust
+    let x = g.point.x;
+    let y = g.point.y;
+ 
+    // Get the parameters:   
+    let one = Fp25519::one();
+    let d = Ed25519Parameters::D;
+    
+    // check -x^2 + y^2 = 1 + d*x^2*y^2
+    assert_eq!(-x.square() + y.square(), one + d * x.square() * y.square());
+    
+```
 We can also check that the group element has the correct order.
 
 ```rust

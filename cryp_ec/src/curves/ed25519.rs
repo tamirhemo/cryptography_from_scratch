@@ -243,6 +243,9 @@ mod tests {
             y,
         ));
 
+        assert_eq!(affine_point.point.x, x);
+        assert_eq!(affine_point.point.y, y);
+
         let one = Fp25519::one();
         let d = Ed25519Parameters::D;
 

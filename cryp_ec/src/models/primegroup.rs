@@ -85,7 +85,7 @@ pub struct GroupEC<P: PrimeGroupConfig> {
 
 #[derive(Debug)]
 pub struct PublicEC<P: PrimeGroupConfig> {
-    point: P::Public,
+    pub point: P::Public,
 }
 
 impl<P: PrimeGroupConfig> From<PublicEC<P>> for GroupEC<P> {
