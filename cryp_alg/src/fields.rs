@@ -1,3 +1,13 @@
+//! Finite field arithmetic - primitives and implementations
+//! 
+//! 
+//! This module contains various primitives for defining finite fields of arbitrary characteristic.
+//! Elements are represented as sequences of Limbs (u32, u64, etc).
+//! 
+//! The main customization is available is the choice of reduction method. 
+//! 
+//! 
+
 use cryp_std::{
     fmt::{Debug, Display},
     hash::Hash,
@@ -102,23 +112,6 @@ pub trait Field:
 
     /// Exponentiation by a general exponent
     fn exp(&self, exp: &impl Integer) -> Self {
-        Self::exp_non_ct(self, exp)
-    }
-    /// Exponentiation by a general exponent
-    fn exp_non_ct(&self, exp: &impl Integer) -> Self {
-        let mut res = Self::one();
-        let base = *self;
-
-        for bit in super::Bits::into_iter_be(exp) {
-            res = res.square();
-            if bit {
-                res *= base;
-            }
-        }
-        res
-    }
-
-    fn exp_ct(&self, exp: &impl Integer) -> Self {
         let mut res = Self::one();
         let mut base = *self;
 
