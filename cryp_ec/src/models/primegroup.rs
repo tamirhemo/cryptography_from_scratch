@@ -22,7 +22,7 @@ pub trait PrimeGroupConfig: CurveOperations + Debug + Sized + 'static + PartialE
     type ScalarField: PrimeField;
 
     /// Gives a generator of the group.
-    fn generator<R : Rng>(rng: Option<R>) -> Self::Public;
+    fn generator<R: Rng>(rng: Option<R>) -> Self::Public;
 
     /// Gives a random element of the group.
     fn rand<R: Rng>(rng: R) -> Self::Public;

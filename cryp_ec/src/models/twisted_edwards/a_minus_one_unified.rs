@@ -1,7 +1,7 @@
 use super::*;
 
 /// A wrapper for Twisted Edwards Curve parameters
-#[derive(Clone, Copy, Debug, PartialEq , Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct EdwardsAM1UnifiedOperations<P: TwistedEdwardsAM1> {
     _marker: cryp_std::marker::PhantomData<P>,
 }
@@ -34,7 +34,7 @@ impl<P: TwistedEdwardsAM1> CurveOperations for EdwardsAM1UnifiedOperations<P> {
         //  Formulas from 2008 Hisil--Wong--Carter--Dawson, http://eprint.iacr.org/2008/522, Section 3.1
         let A = (Y1 - X1) * (Y2 - X2);
         let B = (Y1 + X1) * (Y2 + X2);
-        let C = T1 * P::D2 * T2;
+        let C = (P::D.double()) * T1 * T2;
         let D = Z1.double() * Z2;
         let E = B - A;
         let F = D - C;
@@ -53,7 +53,7 @@ impl<P: TwistedEdwardsAM1> CurveOperations for EdwardsAM1UnifiedOperations<P> {
 
         let A = (Y1 - X1) * (Y2 - X2);
         let B = (Y1 + X1) * (Y2 + X2);
-        let C = T1 * P::D2 * T2;
+        let C = T1 * (P::D.double()) * T2;
         let D = Z1.double();
         let E = B - A;
         let F = D - C;

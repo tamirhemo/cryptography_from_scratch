@@ -98,11 +98,11 @@ where
         T::add_affine_in_place(lhs, rhs)
     }
 
-    fn generator<R : Rng>(rng: Option<R>) -> Self::Public {
+    fn generator<R: Rng>(rng: Option<R>) -> Self::Public {
         Self::generator(rng)
     }
 
-    fn rand<R : Rng>(rng: R) -> Self::Public {
+    fn rand<R: Rng>(rng: R) -> Self::Public {
         Self::rand(rng)
     }
 

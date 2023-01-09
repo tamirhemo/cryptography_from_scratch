@@ -1,26 +1,30 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-//! Elliptic Curve implementation
+//! An Elliptic Curve Library
 //!
-//! The 'models` module contains the implementations of the elliptic curve models.
+//! This library provides a set of traits and implementations for elliptic curves.
+//!
 
 mod curves;
 mod models;
 
 mod common {
     use super::*;
-    pub use models::{GroupEC, PrimeGroupConfig, PrimeSubGroupConfig};
     pub use cryp_alg::{Group, PrimeGroup};
+    pub use models::{
+        Affine, ExtendedPoint, GroupEC, JacobianPoint, PrimeGroupConfig, PrimeSubGroupConfig,
+        Projective, PublicEC,
+    };
 }
 
 pub mod weierstrass {
     use super::*;
-    pub use models::ShortWeierstrass;
     pub use common::*;
+    pub use models::ShortWeierstrass;
 }
 
 pub mod edwards {
     use super::*;
-    pub use models::{TwistedEdwardsAM1, EdwardsAM1UnifiedOperations};
     pub use common::*;
+    pub use models::{EdwardsAM1UnifiedOperations, TwistedEdwardsAM1};
 }

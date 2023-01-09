@@ -40,10 +40,10 @@ mod scalar_mul;
 mod short_weierstrass;
 mod twisted_edwards;
 
-pub use coordinates::Coordinates;
-pub use primegroup::{GroupEC, PrimeGroupConfig, PrimeSubGroupConfig};
+pub use coordinates::{Affine, Coordinates, ExtendedPoint, JacobianPoint, Projective};
+pub use primegroup::{GroupEC, PrimeGroupConfig, PrimeSubGroupConfig, PublicEC};
 pub use short_weierstrass::ShortWeierstrass;
-pub use twisted_edwards::{TwistedEdwardsAM1, EdwardsAM1UnifiedOperations};
+pub use twisted_edwards::{EdwardsAM1UnifiedOperations, TwistedEdwardsAM1};
 
 /// A trait for the operations on an elliptic curve.
 ///

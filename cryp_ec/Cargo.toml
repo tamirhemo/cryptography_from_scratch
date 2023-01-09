@@ -9,6 +9,10 @@ edition = "2021"
 cryp_alg = { path = "../cryp_alg", default-features = false }
 cryp_std = { path = "../cryp_std", default-features = false }
 
+[dev-dependencies]
+num-bigint = "0.4"
+rand = "0.8"
+
 [features]
 default = []
 std = ["cryp_std/std"]

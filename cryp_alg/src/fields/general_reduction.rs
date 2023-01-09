@@ -66,10 +66,18 @@ impl<const N: usize, P: GeneralReduction<N>> PrimeFieldOperations
     }
 
     fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self::BigInt {
-        // Takes a random collection of limbs and reduces it modulo the prime
+        // Takes a random collection of limbs and reject it if it is greater than the modulus
         let mut res = [P::Limb::ZERO; N];
-
-        unimplemented!()
+        loop {
+            for i in 0..N {
+                res[i] = P::Limb::rand(rng);
+            }
+            let element = Self::BigInt::from(res);
+            if element.le(&P::MODULUS.into()) {
+                break;
+            }
+        }
+        res.into()
     }
 
     fn add_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
@@ -101,24 +109,5 @@ impl<const N: usize, P: GeneralReduction<N>> PrimeFieldOperations
     fn mul_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
         let double = lhs.carrying_mul(*other, Self::BigInt::zero());
         *lhs = P::reduction_limbint(&double);
-    }
-
-    fn inverse(element: &Self::BigInt) -> Option<Self::BigInt> {
-        // Compute element^(p-2)
-
-        // Set power to p-2
-        let two = Self::one().carrying_add(Self::one(), P::Limb::NO).0;
-        let field_power = LimbInt::from(P::MODULUS).carrying_sub(two, P::Limb::NO).0;
-
-        let power = Self::as_int(&field_power);
-
-        //Compute element^power
-        let res = Self::exp(element, &power);
-
-        if Self::is_zero(element) {
-            None
-        } else {
-            Some(res)
-        }
     }
 }

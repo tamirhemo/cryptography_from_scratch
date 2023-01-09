@@ -15,15 +15,6 @@ pub trait Integer: Sized {
     type Limb: Limb;
 
     fn into_limbs_le(&self) -> &[Self::Limb];
-
-    fn from_bytes_be(bytes: &[u8]) -> Result<Self, BytesConversionError>;
-    fn from_bytes_le(bytes: &[u8]) -> Result<Self, BytesConversionError>;
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum BytesConversionError {
-    LengthTooBig,
-    LengthNotMultipleOfLimbSize,
 }
 
 /// Provides a namespace for converting an integer type into
@@ -62,20 +53,35 @@ impl Bytes {
     }
 }
 
-/*
-#[cfg(test)]
-impl Integer for num_bigint::BigUint {
-    type Limb = u32;
+impl<L: Limb, const N: usize> Integer for [L; N] {
+    type Limb = L;
 
-    fn into_limbs_le(&self) -> &[Self::Limb]{
-        self.to_u32_digits().as_slice()
-    }
-
-    fn from_bytes_be(bytes: &[u8]) -> Result<Self, BytesConversionError> {
-        Ok(num_bigint::BigUint::from_bytes_be(bytes))
-    }
-    fn from_bytes_le(bytes: &[u8]) -> Result<Self, BytesConversionError> {
-        Ok(num_bigint::BigUint::from_bytes_le(bytes))
+    fn into_limbs_le(&self) -> &[Self::Limb] {
+        self
     }
 }
-*/
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use cryp_std::vec;
+    use cryp_std::vec::Vec;
+
+    #[test]
+    fn test_bits() {
+        let scalar = LimbInt::<u32, 2>::from([8u32, 0]);
+        let bits = Bits::into_iter_be(&scalar).collect::<Vec<_>>();
+        assert_eq!(bits.len(), 64);
+        assert_eq!(
+            bits,
+            vec![
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                true, false, false, false
+            ]
+        );
+    }
+}

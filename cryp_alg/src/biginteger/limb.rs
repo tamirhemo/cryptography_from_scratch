@@ -7,19 +7,7 @@ use cryp_std::rand::UniformRand;
 /// Currently, it is assumed implicitly that Limb behaves like a power of two when
 /// it comes to coversion from bits.
 pub trait Limb:
-    Sized
-    + From<u32>
-    + Copy
-    + Clone
-    + PartialEq
-    + Eq
-    + Debug
-    + Send
-    + Sync
-    + Hash
-    + UniformRand
-    + PartialOrd
-    + Ord
+    Sized + Copy + Clone + PartialEq + Eq + Debug + Send + Sync + Hash + UniformRand + PartialOrd + Ord
 {
     /// The type used to represent a carry bit.
     type Carry: PartialEq + Eq + Copy + Clone + Debug;
@@ -175,13 +163,30 @@ mod tests {
         assert_eq!(0u32.sub_carry(1, false), (u32::MAX, true));
         assert_eq!(0u32.sub_carry(1, true), (u32::MAX - 1, true));
         assert_eq!(u64::MAX.sub_carry(1, false), (u64::MAX - 1, false));
+        assert_eq!(u64::MAX.sub_carry(1, true), (u64::MAX - 2, false));
     }
 
     #[test]
     fn test_mul_carry() {
+        use rand::thread_rng;
+        let mut rng = thread_rng();
+        use cryp_std::rand::UniformRand;
+        for _ in 0..100 {
+            let lhs = u64::rand(&mut rng);
+            let rhs = u64::rand(&mut rng);
+            let carry = u64::rand(&mut rng);
+            let (a, b) = lhs.mul_carry(rhs, carry);
+            let mul = (a as u128) + ((b as u128) << 64);
+            assert_eq!(mul, (lhs as u128) * (rhs as u128) + (carry as u128));
+        }
         assert_eq!(10u32.mul_carry(10u32, 0u32), (100, 0));
         assert_eq!(100u32.mul_carry(10u32, 1u32), (1001, 0));
         assert_eq!(u32::MAX.mul_carry(2u32, 1u32), (4294967295, 1));
+
+        let (lhs, rhs, carry) = (u32::MAX / 4, 200, 10);
+        let (a, b) = lhs.mul_carry(rhs, carry);
+        let mul = (a as u64) + ((b as u64) << 32);
+        assert_eq!(mul, (lhs as u64) * (rhs as u64) + (carry as u64));
 
         let (lhs, rhs, carry) = (u32::MAX / 4, 200, 10);
         let (a, b) = lhs.mul_carry(rhs, carry);

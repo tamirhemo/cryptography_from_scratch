@@ -14,10 +14,14 @@ use zeroize::Zeroize;
 mod abstract_operations;
 mod general_reduction;
 mod montgomery;
-mod p25519;
+mod solinas;
 
 pub use abstract_operations::{PrimeFieldOperations, F};
+pub use general_reduction::{GeneralReduction, GeneralReductionOperations};
 pub use montgomery::{MontParameters, MontgomeryOperations};
+pub use solinas::{SolinasParameters, SolinasReduction};
+
+pub use general_reduction::*;
 
 /// The interface for a field
 pub trait Field:
@@ -83,23 +87,53 @@ pub trait Field:
     ///
     /// Does not run in constant time.
     fn pow(&self, exp: u64) -> Self {
-        let mut result = Self::one();
-        let mut base = *self;
-        let mut exp = exp;
+        let mut res = Self::one();
+        let base = *self;
 
-        while exp > 0 {
-            if exp & 1 == 1 {
-                result *= base;
+        for i in (0..64).rev() {
+            let bit = (exp >> i) & 1 == 1;
+            res = res.square();
+            if bit {
+                res *= base;
             }
-            exp >>= 1;
-            base.square_in_place();
         }
-
-        result
+        res
     }
 
     /// Exponentiation by a general exponent
-    fn exp(&self, exp: &impl Integer) -> Self;
+    fn exp(&self, exp: &impl Integer) -> Self {
+        Self::exp_non_ct(self, exp)
+    }
+    /// Exponentiation by a general exponent
+    fn exp_non_ct(&self, exp: &impl Integer) -> Self {
+        let mut res = Self::one();
+        let base = *self;
+
+        for bit in super::Bits::into_iter_be(exp) {
+            res = res.square();
+            if bit {
+                res *= base;
+            }
+        }
+        res
+    }
+
+    fn exp_ct(&self, exp: &impl Integer) -> Self {
+        let mut res = Self::one();
+        let mut base = *self;
+
+        let bits = super::Bits::into_iter_be(exp);
+        for bit in bits {
+            if bit {
+                res *= base;
+                base = base.square();
+            } else {
+                base *= res;
+                res = res.square();
+            }
+        }
+        res
+    }
 }
 
 /// An interface for field of prime order.

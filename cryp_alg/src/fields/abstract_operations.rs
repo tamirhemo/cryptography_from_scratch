@@ -6,10 +6,7 @@ use cryp_std::{
     hash::{Hash, Hasher},
     iter,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
-    rand::{
-        distributions::{Distribution, Standard},
-        Rng, UniformRand,
-    },
+    rand::{Rng, UniformRand},
 };
 
 /// An interface for defining operations on a prime field.
@@ -25,10 +22,6 @@ pub trait PrimeFieldOperations: 'static + Debug {
         + Display
         + PartialEq
         + Eq
-        //+ From<u32>
-        //+ From<u64>
-        //+ From<u128>
-        //+ From<u8>
         + Send
         + Sync
         + 'static;
@@ -105,7 +98,20 @@ pub trait PrimeFieldOperations: 'static + Debug {
     }
 
     /// The multiplicative inverse of an element, if exists
-    fn inverse(element: &Self::BigInt) -> Option<Self::BigInt>;
+    fn inverse(element: &Self::BigInt) -> Option<Self::BigInt> {
+        let mut modulus_minus_two = Self::one();
+        Self::add_assign(&mut modulus_minus_two, &Self::one());
+        Self::negation_in_place(&mut modulus_minus_two);
+        let power = Self::as_int(&modulus_minus_two);
+
+        let res = Self::exp(element, &power);
+
+        if Self::is_zero(&res) {
+            None
+        } else {
+            Some(res)
+        }
+    }
 
     /// Exponentiation of an element.
     ///
@@ -116,10 +122,8 @@ pub trait PrimeFieldOperations: 'static + Debug {
         let mut res = Self::one();
         let mut base = *element;
 
-        let iter_bits_be = Bits::into_iter_be(exp);
-
-        for bit in iter_bits_be {
-            // extract bits in big endian order
+        let bits = Bits::into_iter_be(exp);
+        for bit in bits {
             if bit {
                 Self::mul_assign(&mut res, &base);
                 Self::square_assign(&mut base);
@@ -138,12 +142,6 @@ pub struct F<S: PrimeFieldOperations> {
 }
 
 impl<S: PrimeFieldOperations> F<S> {
-    fn new(element: S::BigInt) -> Self {
-        Self {
-            element: S::reduce(&element),
-        }
-    }
-
     /// Allows the assignment of a field element with specific limbs
     ///
     /// This function is meant to be used when the user needs to hard-encode
@@ -162,15 +160,15 @@ impl<S: PrimeFieldOperations> F<S> {
 
 impl<S: PrimeFieldOperations> Field for F<S> {
     fn zero() -> Self {
-        Self::new(S::zero())
+        Self::from_RAW_limbs(S::zero())
     }
 
     fn one() -> Self {
-        Self::new(S::one())
+        Self::from_RAW_limbs(S::one())
     }
 
     fn inverse(&self) -> Option<Self> {
-        S::inverse(&self.element).map(Self::new)
+        S::inverse(&self.element).map(Self::from_RAW_limbs)
     }
 
     fn square_in_place(&mut self) {
@@ -182,7 +180,7 @@ impl<S: PrimeFieldOperations> Field for F<S> {
     }
 
     fn exp(&self, exp: &impl Integer) -> Self {
-        Self::new(S::exp(&self.element, exp))
+        Self::from_RAW_limbs(S::exp(&self.element, exp))
     }
 }
 
@@ -196,7 +194,7 @@ impl<S: PrimeFieldOperations> PrimeField for F<S> {
     }
 
     fn from_int(int: &Self::BigInteger) -> Self {
-        Self::new(S::reduce(int))
+        Self::from_RAW_limbs(S::reduce(int))
     }
 }
 
@@ -345,25 +343,25 @@ impl<S: PrimeFieldOperations> Neg for F<S> {
 
 impl<S: PrimeFieldOperations> iter::Sum for F<S> {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.fold(F::new(S::zero()), |acc, x| acc + x)
+        iter.fold(F::from_RAW_limbs(S::zero()), |acc, x| acc + x)
     }
 }
 
 impl<'a, S: PrimeFieldOperations> iter::Sum<&'a Self> for F<S> {
     fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
-        iter.fold(F::new(S::zero()), |acc, x| acc + x)
+        iter.fold(F::from_RAW_limbs(S::zero()), |acc, x| acc + x)
     }
 }
 
 impl<S: PrimeFieldOperations> iter::Product for F<S> {
     fn product<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.fold(F::new(S::one()), |acc, x| acc * x)
+        iter.fold(F::from_RAW_limbs(S::one()), |acc, x| acc * x)
     }
 }
 
 impl<'a, S: PrimeFieldOperations> iter::Product<&'a Self> for F<S> {
     fn product<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
-        iter.fold(F::new(S::one()), |acc, x| acc * x)
+        iter.fold(F::from_RAW_limbs(S::one()), |acc, x| acc * x)
     }
 }
 
@@ -407,7 +405,7 @@ impl<S: PrimeFieldOperations> cryp_std::fmt::Display for F<S> {
 
 impl<S: PrimeFieldOperations> UniformRand for F<S> {
     fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self {
-        F::new(S::rand(rng))
+        F::from_RAW_limbs(S::rand(rng))
     }
 }
 

@@ -1,4 +1,4 @@
-use super::{Bytes, BytesConversionError, Integer, Limb};
+use super::{Bytes, Integer, Limb};
 
 /// A fixed size big-precision integer type
 #[derive(Debug, Clone, Copy)]
@@ -48,6 +48,15 @@ impl<L: Limb, const N: usize> LimbInt<L, N> {
         res
     }
 
+    pub fn le_non_ct(&self, other: &Self) -> bool {
+        for i in (0..N).rev() {
+            if self.limbs[i] != other.limbs[i] {
+                return self.limbs[i] <= other.limbs[i];
+            }
+        }
+        true
+    }
+
     pub fn le_double(element: &(Self, Self), other: &(Self, Self)) -> bool {
         let high = element.1.le(&other.1);
         let low = element.0.le(&other.0);
@@ -85,7 +94,7 @@ impl<L: Limb, const N: usize> LimbInt<L, N> {
         for i in 0..N {
             let mut c = L::ZERO;
             for j in 0..(N - i) {
-                let (v_1, u_1) = self.limbs[i].mul_carry(rhs.limbs[j], c);
+                let (v_1, u_1) = self.limbs[j].mul_carry(rhs.limbs[i], c);
                 let (v, temp) = v_1.add_carry(w_l[i + j], L::NO);
                 let (u, zer) = u_1.add_carry(L::ZERO, temp);
                 debug_assert!(zer == L::NO);
@@ -94,7 +103,7 @@ impl<L: Limb, const N: usize> LimbInt<L, N> {
                 c = u;
             }
             for j in (N - i)..N {
-                let (v_1, u_1) = self.limbs[i].mul_carry(rhs.limbs[j], c);
+                let (v_1, u_1) = self.limbs[j].mul_carry(rhs.limbs[i], c);
                 let (v, temp) = v_1.add_carry(w_h[i + j - N], L::NO);
                 let (u, zer) = u_1.add_carry(L::ZERO, temp);
                 debug_assert!(zer == L::NO);
@@ -104,11 +113,34 @@ impl<L: Limb, const N: usize> LimbInt<L, N> {
             }
             w_h[i] = c;
         }
-        (w_l.into(), w_h.into())
+        let (mut res_l, mut res_h) = (Self::from(w_l), Self::from(w_h));
+        let flag;
+        (res_l, flag) = res_l.carrying_add(carry, L::NO);
+
+        // Non-constant time issue here
+        let mut temp = [L::ZERO; N];
+        if flag != L::NO {
+            temp[0] = L::ONE;
+        }
+        let (h, z) = res_h.carrying_add(Self::from_limbs(temp), L::NO);
+        assert_eq!(z, L::NO);
+        res_h = h;
+        (res_l, res_h)
     }
 
     pub fn mul_by_limb(&self, rhs: L) -> (Self, L) {
         let mut carry = L::ZERO;
+        let mut limbs = [L::ZERO; N];
+        for i in 0..N {
+            let (l, c) = self.limbs[i].mul_carry(rhs, carry);
+            limbs[i] = l;
+            carry = c;
+        }
+        (limbs.into(), carry)
+    }
+
+    pub fn mul_by_limb_carry(&self, rhs: L, carry: L) -> (Self, L) {
+        let mut carry = carry;
         let mut limbs = [L::ZERO; N];
         for i in 0..N {
             let (l, c) = self.limbs[i].mul_carry(rhs, carry);
@@ -137,52 +169,6 @@ impl<L: Limb, const N: usize> Integer for LimbInt<L, N> {
     type Limb = L;
     fn into_limbs_le(&self) -> &[Self::Limb] {
         &self.limbs
-    }
-
-    fn from_bytes_be(bytes: &[u8]) -> Result<Self, BytesConversionError> {
-        if bytes.len() > N * L::BYTES {
-            return Err(BytesConversionError::LengthTooBig);
-        }
-        if bytes.len() % L::BYTES == 0 {
-            return Err(BytesConversionError::LengthNotMultipleOfLimbSize);
-        }
-        let num_chucks = bytes.len() / L::BYTES;
-        let mut limbs = [L::ZERO; N];
-
-        // limbs
-        for i in ((N - num_chucks)..N).rev() {
-            limbs[i] =
-                L::from_bytes_le(&bytes[i * L::BYTES..(i + 1) * L::BYTES]).expect("Wrong length");
-        }
-        // trailing zeros
-        for i in 0..(N - num_chucks) {
-            limbs[i] = L::ZERO;
-        }
-
-        Ok(limbs.into())
-    }
-
-    fn from_bytes_le(bytes: &[u8]) -> Result<Self, BytesConversionError> {
-        assert!(bytes.len() <= N * L::BYTES, "Length too big");
-        assert!(
-            bytes.len() % L::BYTES == 0,
-            "Length not a multiple of limb size"
-        );
-
-        let num_chucks = bytes.len() / L::BYTES;
-        let mut limbs = [L::ZERO; N];
-
-        // limbs
-        for i in 0..num_chucks {
-            limbs[i] =
-                L::from_bytes_le(&bytes[i * L::BYTES..(i + 1) * L::BYTES]).expect("Wrong length");
-        }
-        // leading zeros
-        for i in (num_chucks)..N {
-            limbs[i] = L::ZERO;
-        }
-
-        Ok(limbs.into())
     }
 }
 
@@ -213,7 +199,6 @@ mod tests {
     use cryp_std::vec::Vec;
     use num_bigint::BigUint;
     pub type LimbInt64 = LimbInt<u32, 2>;
-    pub type LimbInt128 = LimbInt<u32, 4>;
 
     // Conversion to BigUint from the num_bigint crate
     impl<L: Limb, const N: usize> From<&LimbInt<L, N>> for BigUint {
@@ -231,13 +216,6 @@ mod tests {
 
     fn to_u64(element: &LimbInt64) -> u64 {
         element.limbs[0] as u64 + ((element.limbs[1] as u64) << 32)
-    }
-
-    fn to_u128(element: &LimbInt128) -> u128 {
-        element.limbs[0] as u128
-            + ((element.limbs[1] as u128) << 32)
-            + ((element.limbs[2] as u128) << 64)
-            + ((element.limbs[3] as u128) << 96)
     }
 
     #[test]
@@ -369,7 +347,7 @@ mod tests {
 
     #[test]
     fn test_mul_by_limb_shift() {
-        let a = LimbInt64::from([1000, u32::MAX]);
+        let a = LimbInt64::from([29394944, u32::MAX]);
         let b = 100u32;
         let i = 1;
         let b_int = LimbInt64::single_power(b, i);
@@ -384,5 +362,83 @@ mod tests {
         let a = LimbInt64::from([1000, u32::MAX]);
         let b = LimbInt64::from([1000, u32::MAX]);
         assert_eq!(a, b);
+    }
+
+    #[test]
+    fn test_bigint() {
+        use rand::thread_rng;
+        let mut rng = thread_rng();
+        use crate::helper::big_int_from_u64;
+        use cryp_std::rand::UniformRand;
+
+        // test for u_32
+
+        let a = LimbInt::<u32, 7>::from([
+            u32::rand(&mut rng),
+            u32::rand(&mut rng),
+            u32::rand(&mut rng),
+            u32::rand(&mut rng),
+            u32::rand(&mut rng),
+            u32::rand(&mut rng),
+            u32::rand(&mut rng),
+        ]);
+
+        let b = LimbInt::<u32, 7>::from([
+            u32::rand(&mut rng),
+            u32::rand(&mut rng),
+            u32::rand(&mut rng),
+            u32::rand(&mut rng),
+            u32::rand(&mut rng),
+            u32::rand(&mut rng),
+            u32::rand(&mut rng),
+        ]);
+
+        assert_ne!(a, b);
+
+        let (product_l, product_r) = a.carrying_mul(b, LimbInt::<u32, 7>::zero());
+
+        let product: Vec<u32> = product_l
+            .limbs
+            .into_iter()
+            .chain(product_r.limbs.into_iter())
+            .collect();
+
+        let n_a = BigUint::from_slice(&a.limbs);
+        let n_b = BigUint::from_slice(&b.limbs);
+        let n_p = BigUint::from_slice(&product);
+
+        assert_eq!(n_p, n_a * n_b);
+
+        //  test for u64
+
+        let c = LimbInt::<u64, 4>::from([
+            u64::rand(&mut rng),
+            u64::rand(&mut rng),
+            u64::rand(&mut rng),
+            u64::rand(&mut rng),
+        ]);
+
+        let d = LimbInt::<u64, 4>::from([
+            u64::rand(&mut rng),
+            u64::rand(&mut rng),
+            u64::rand(&mut rng),
+            u64::rand(&mut rng),
+        ]);
+
+        assert_ne!(c, d);
+
+        let (product_l, product_r) = c.carrying_mul(d, LimbInt::<u64, 4>::zero());
+
+        let product: Vec<u64> = product_l
+            .limbs
+            .into_iter()
+            .chain(product_r.limbs.into_iter())
+            .collect();
+
+        let n_c = big_int_from_u64(&c.limbs);
+        let n_d = big_int_from_u64(&d.limbs);
+        let n_prod = big_int_from_u64(&product);
+
+        assert_eq!(n_prod, n_c * n_d);
     }
 }

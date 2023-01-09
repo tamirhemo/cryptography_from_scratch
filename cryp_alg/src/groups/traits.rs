@@ -7,9 +7,11 @@ use cryp_std::{
     vec::Vec,
 };
 
+use crate::{Bits, Integer};
+
 use core::borrow::Borrow;
 
-use crate::{PrimeField};
+use crate::PrimeField;
 
 //use zeroize::Zeroize;
 
@@ -50,6 +52,23 @@ pub trait Group:
     fn double(&self) -> Self {
         let mut res = *self;
         res.double_in_place();
+        res
+    }
+
+    fn mul_int(&self, scalar: & impl Integer) -> Self {
+        let mut res = Self::identity();
+        let mut base = *self;
+
+        let bits = Bits::into_iter_be(scalar);
+        for bit in bits {
+            if bit {
+                res += base;
+                base.double();
+            } else {
+                base += res;
+                res.double();
+            }
+        }
         res
     }
 }

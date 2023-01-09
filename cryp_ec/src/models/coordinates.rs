@@ -20,12 +20,8 @@ pub struct Affine<F: Field> {
 }
 
 impl<F: Field> Affine<F> {
-
     pub const fn new(x: F, y: F) -> Self {
-        Self {
-            x,
-            y,
-        }
+        Self { x, y }
     }
 }
 
