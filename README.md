@@ -49,8 +49,7 @@ We can check that the given element is on the curve:
     let d = Ed25519Parameters::D;
     
     // check -x^2 + y^2 = 1 + d*x^2*y^2
-    assert_eq!(-x.square() + y.square(), one + d * x.square() * y.square());
-    
+    assert_eq!(-x.square() + y.square(), one + d * x.square() * y.square()); 
 ```
 We can also check that the group element has the correct order.
 

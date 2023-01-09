@@ -89,6 +89,8 @@ mod tests {
             const C: [Self::Limb; 4] = [38, 0, 0, 0];
         }
 
+        for _ in 0..100 {
+
         let mut rng = thread_rng();
         let a: [u64; 4] = [
             u64::rand(&mut rng),
@@ -142,5 +144,6 @@ mod tests {
 
         // check reduction
         assert_eq!(n_red % &modulus, n_product % modulus);
+    }
     }
 }

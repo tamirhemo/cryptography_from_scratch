@@ -34,27 +34,28 @@ impl<const N: usize, P: MontParameters<N>> MontgomeryOperations<N, P> {
         element: &(LimbInt<P::Limb, N>, LimbInt<P::Limb, N>),
     ) -> LimbInt<P::Limb, N> {
         // algorithm 14.32 in Handbook of Applied Cryptography
+        // The idea is to compute (a  + um) / b^n with u = a* m' 
 
         let (mut a_l, mut a_r) = (element.0, element.1);
 
         let modulus = LimbInt::from(P::MODULUS);
-
+       
+        let mut c = P::Limb::NO;
         for i in 0..N {
-            // u = a_i * m′ mod b
             let u = a_l.limbs[i].mul_carry(P::MP, P::Limb::ZERO).0;
 
-            // a = a + u * m * b^i
+            // compute u * m * b^i
+            let mut ui = [P::Limb::ZERO; N];
+            ui[i] = u;
 
-            // umbi = u * m * b^i = m*(u*b^i)
-            //let umbi = modulus.mul_by_limb_shift(u, i);
-            let mut ubi = [P::Limb::ZERO; N];
-            ubi[i] = u;
-            let umbi = modulus.carrying_mul(ubi.into(), LimbInt::zero());
-
-            // add umbi to a
-            let (a_0, c) = a_l.carrying_add(umbi.0, P::Limb::NO);
-            let (a_1, _) = a_r.carrying_add(umbi.1, c);
-            (a_l, a_r) = (a_0, a_1);
+            let (c_l, c_h) = modulus.carrying_mul(ui.into(), LimbInt::zero());
+            // Now add it to a
+            (a_l, c) = a_l.carrying_add(c_l, c);
+            (a_r, c) = a_r.carrying_add(c_h, c);
+        } 
+        // deal with final carry
+        if c !=P::Limb::NO {
+            a_r = a_r.carrying_add(P::R.into(), P::Limb::NO).0;
         }
         assert_eq!(a_l.limbs, [P::Limb::ZERO; N]);
 
@@ -323,6 +324,8 @@ mod tests {
         }
 
         let mut rng = thread_rng();
+
+        for _ in 0..100 {
         let a: [u64; 4] = [
             u64::rand(&mut rng),
             u64::rand(&mut rng),
@@ -376,4 +379,5 @@ mod tests {
         // check reduction
         assert_eq!((n_mont_red * &r) % &modulus, n_product % modulus);
     }
+}
 }

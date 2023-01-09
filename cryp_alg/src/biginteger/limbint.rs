@@ -91,6 +91,7 @@ impl<L: Limb, const N: usize> LimbInt<L, N> {
         let mut w_l = [L::ZERO; N];
         let mut w_h = [L::ZERO; N];
 
+        // Compute the carrying multiplication
         for i in 0..N {
             let mut c = L::ZERO;
             for j in 0..(N - i) {
@@ -113,11 +114,12 @@ impl<L: Limb, const N: usize> LimbInt<L, N> {
             }
             w_h[i] = c;
         }
+
+        // add the carry
         let (mut res_l, mut res_h) = (Self::from(w_l), Self::from(w_h));
         let flag;
         (res_l, flag) = res_l.carrying_add(carry, L::NO);
 
-        // Non-constant time issue here
         let mut temp = [L::ZERO; N];
         if flag != L::NO {
             temp[0] = L::ONE;
