@@ -1,5 +1,5 @@
 
-use crate::{edwards::*, models::Coordinates};
+use crate::edwards::*;
 use cryp_alg::ff::*;
 use cryp_std::vec::Vec;
 use cryp_std::rand::Rng;
