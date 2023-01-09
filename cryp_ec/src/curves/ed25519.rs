@@ -247,7 +247,6 @@ mod tests {
         assert_eq!(identity + point.double(), point.double());
         assert_eq!(point.mul_int(&[2u32]), point.double());
         assert_eq!(x.square(), x.exp(&[2u32]));
-        assert_eq!(mul_int(&x, &[2u32]), x.exp(&[2u32]));
         assert_eq!(x*&(one + one), x.double());
 
         let order : [u64; 4] = [
