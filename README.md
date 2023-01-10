@@ -9,6 +9,7 @@
 ## Basic usage
 
 ### Finite Field Arithmetic 
+The cryp_alg crate provides a way to construct fields.
 
 ```rust
 use cryp_alg::ff::*;
