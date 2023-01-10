@@ -1,6 +1,7 @@
 use cryp_alg::Field;
 use cryp_std::hash::Hash;
 use cryp_std::rand::Rng;
+use cryp_std::vec::Vec;
 
 mod pedersen;
 
@@ -15,6 +16,7 @@ pub trait Vector {
     type Field: Field;
 
     fn dim(&self) -> usize;
+    fn as_slice(&self) -> &[Self::Field];
 }
 
 /// Minimal interface for a vector over a field with a fixed basis
@@ -86,5 +88,19 @@ impl<F: Field, const N: usize> Vector for [F; N] {
 
     fn dim(&self) -> usize {
         N
+    }
+    fn as_slice(&self) -> &[Self::Field] {
+        self
+    }
+}
+
+impl<F: Field> Vector for Vec<F> {
+    type Field = F;
+
+    fn dim(&self) -> usize {
+        self.len()
+    }
+    fn as_slice(&self) -> &[Self::Field] {
+        self
     }
 }
