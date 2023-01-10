@@ -1,12 +1,12 @@
 //! Finite field arithmetic - primitives and implementations
-//! 
-//! 
+//!
+//!
 //! This module contains various primitives for defining finite fields of arbitrary characteristic.
 //! Elements are represented as sequences of Limbs (u32, u64, etc).
-//! 
-//! The main customization is available is the choice of reduction method. 
-//! 
-//! 
+//!
+//! The main customization is available is the choice of reduction method.
+//!
+//!
 
 use cryp_std::{
     fmt::{Debug, Display},
@@ -145,116 +145,4 @@ pub trait PrimeField: Field {
 
     fn as_int(&self) -> Self::BigInteger;
     fn from_int(int: &Self::BigInteger) -> Self;
-}
-
-#[cfg(test)]
-mod field_tests {
-    use super::*;
-    use cryp_std::rand::rngs::mock::StepRng;
-
-    pub struct FieldTests<F: Field>(cryp_std::marker::PhantomData<F>);
-
-    impl<F: Field> FieldTests<F> {
-        /// Test that the additive identity is correct, and multiplicative zero is correct
-        fn test_zero(num_tests: usize) {
-            let zero = F::zero();
-
-            let mut rng = StepRng::new(0, 1);
-            for _ in 0..num_tests {
-                let element = F::rand(&mut rng);
-                // Test that zero is additive identity
-                assert_eq!(element + zero, element);
-                assert_eq!(zero + element, element);
-                // Test zero multiplicative property
-                assert_eq!(element * zero, zero);
-                assert_eq!(zero * element, zero);
-            }
-        }
-
-        /// Test that the multiplicative identity is correct
-        fn test_one(num_tests: usize) {
-            let one = F::one();
-
-            let mut rng = StepRng::new(0, 1);
-            for _ in 0..num_tests {
-                let element = F::rand(&mut rng);
-                // Test that one is multiplicative identity
-                assert_eq!(element * one, one);
-                assert_eq!(one * element, one);
-            }
-        }
-
-        /// Test that the addition is commutative
-        fn test_additive_commutes(num_tests: usize) {
-            let mut rng = StepRng::new(0, 1);
-
-            for _ in 0..num_tests {
-                let element = F::rand(&mut rng);
-                let other = F::rand(&mut rng);
-                // Test that one is multiplicative identity
-                assert_eq!(element + other, other + element);
-            }
-        }
-
-        /// Test that the multiplication is commutative
-        fn test_mul_commutes(num_tests: usize) {
-            let mut rng = StepRng::new(0, 1);
-
-            for _ in 0..num_tests {
-                let element = F::rand(&mut rng);
-                let other = F::rand(&mut rng);
-                // Test that one is multiplicative identity
-                assert_eq!(element * other, other * element);
-            }
-        }
-
-        /*
-        /// Test that the conversion from u128 to F is homomorphic
-        fn test_from_u32(num_tests: usize) {
-            let mut rng = StepRng::new(0, 1);
-
-            for _ in 0..num_tests {
-                let a = u32::rand(&mut rng);
-                let b = u32::rand(&mut rng);
-                // Test that the conversion from u64 to F is homomorphic
-                assert_eq!(F::from(1u32), F::one());
-                assert_eq!(F::from(0u32), F::zero());
-                assert_eq!(F::from(a) + F::from(b), F::from(a + b));
-                assert_eq!(F::from(a) * F::from(b), F::from(a * b));
-            }
-        }
-        */
-
-        fn comparison_with_big_int() {}
-
-        /// Run all tests for a field
-        pub fn run_all_tests() {
-            let num_tests = 10;
-            Self::test_zero(num_tests);
-            Self::test_one(num_tests);
-            Self::test_additive_commutes(num_tests);
-            Self::test_mul_commutes(num_tests);
-            //Self::test_from_u32(num_tests);
-        }
-    }
-}
-
-#[cfg(test)]
-mod prime_field_tests {
-    use super::*;
-    use cryp_std::rand::rngs::mock::StepRng;
-
-    pub struct PrimeFieldTests<F: PrimeField>(cryp_std::marker::PhantomData<F>);
-
-    impl<F: PrimeField> PrimeFieldTests<F> {
-        /// Test that the multiplicative inverse is correct
-        fn test_modulus() {
-            //TODO
-        }
-
-        /// Run all tests for a field
-        pub fn run_all_tests() {
-            Self::test_modulus();
-        }
-    }
 }

@@ -32,8 +32,8 @@ pub trait Limb:
     fn sub_carry(&self, rhs: Self, carry: Self::Carry) -> (Self, Self::Carry);
 
     /// Calculates `self * rhs + carry`
-    /// 
-    /// The result is an integer of length 2*N returned as a tuple (a_0, a_1) 
+    ///
+    /// The result is an integer of length 2*N returned as a tuple (a_0, a_1)
     /// which represents the result as `a_0 + a_1 * b^N`.
     fn mul_carry(&self, rhs: Self, carry: Self) -> (Self, Self);
 
@@ -43,11 +43,11 @@ pub trait Limb:
     fn into_bytes_le(&self) -> Self::Bytes;
 
     /// Constructs a limb from a sequence of bytes with the correct length.
-    /// 
+    ///
     /// The bytes are interpreted in big endian order.
     fn from_bytes_be(bytes: &[u8]) -> Result<Self, WrongByteLengthError>;
     /// Constructs a limb from a sequence of bytes with the correct length.
-    /// 
+    ///
     /// The bytes are interpreted in little endian order.
     fn from_bytes_le(bytes: &[u8]) -> Result<Self, WrongByteLengthError>;
 }
