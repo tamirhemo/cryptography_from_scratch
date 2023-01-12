@@ -24,10 +24,10 @@ impl<L: Limb, const N: usize> LimbInt<L, N> {
         Self { limbs }
     }
 
-    fn single_power(limb: L, i: usize) -> Self {
+    const fn single_power(limb: L, i: usize) -> Self {
         let mut limbs = [L::ZERO; N];
         limbs[i] = limb;
-        limbs.into()
+        Self { limbs }
     }
 
     /// Comparison in constant time (aspirationally)
