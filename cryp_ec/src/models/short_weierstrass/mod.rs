@@ -1,6 +1,6 @@
 use super::coordinates::{Affine, JacobianPoint};
-use super::CurveOperations;
 use super::ff::*;
+use super::CurveOperations;
 
 mod jacobian_general;
 

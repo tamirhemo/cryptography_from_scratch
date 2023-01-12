@@ -4,13 +4,13 @@ use cryp_std::{
     fmt::{Debug, Display},
     hash::Hash,
     iter,
-    rand::Rng,
     ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign},
-    vec::Vec
+    rand::Rng,
+    vec::Vec,
 };
 
-use super::{CurveOperations, scalar_mul};
 use super::ff::*;
+use super::{scalar_mul, CurveOperations};
 
 mod subgroup;
 

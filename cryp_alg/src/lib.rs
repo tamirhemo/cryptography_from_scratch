@@ -5,6 +5,7 @@
 mod biginteger;
 mod fields;
 mod groups;
+mod rings;
 
 pub use biginteger::{Bits, Bytes, Integer, LimbInt};
 pub use fields::{
@@ -12,13 +13,15 @@ pub use fields::{
 };
 pub use groups::{Group, PrimeGroup};
 
+pub use rings::Ring;
+
 pub mod ff {
     pub use crate::biginteger::{Bits, Bytes, Integer};
-    pub use crate::{Zero, One};
     pub use crate::fields::{
         Field, GeneralReduction, GeneralReductionOperations, MontParameters, MontgomeryOperations,
         PrimeField, PrimeFieldOperations, SolinasParameters, SolinasReduction, F,
     };
+    pub use crate::{One, Zero};
     pub use cryp_std::rand::UniformRand;
 }
 
@@ -36,8 +39,6 @@ pub(crate) mod helper {
         BigUint::from_slice(v_u32.as_slice())
     }
 }
-
-
 
 // ===========================================================================
 // General trais

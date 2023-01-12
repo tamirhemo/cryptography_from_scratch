@@ -16,8 +16,8 @@ use cryp_std::{
     rand::UniformRand,
 };
 
+use super::{One, Zero};
 use crate::Integer;
-use super::{Zero, One};
 
 use zeroize::Zeroize;
 

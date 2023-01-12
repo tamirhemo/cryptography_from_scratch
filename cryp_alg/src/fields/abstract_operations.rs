@@ -1,4 +1,4 @@
-use crate::{biginteger::Bits, Zero, One};
+use crate::{biginteger::Bits, One, Zero};
 
 use super::{Field, Integer, PrimeField};
 use cryp_std::{
@@ -158,7 +158,6 @@ impl<S: PrimeFieldOperations> F<S> {
 // Trait implementations
 //------------------------------------
 
-
 impl<S: PrimeFieldOperations> Zero for F<S> {
     fn zero() -> Self {
         Self::from_RAW_limbs(S::zero())
@@ -171,9 +170,7 @@ impl<S: PrimeFieldOperations> One for F<S> {
     }
 }
 
-
 impl<S: PrimeFieldOperations> Field for F<S> {
-
     fn inverse(&self) -> Option<Self> {
         S::inverse(&self.element).map(Self::from_RAW_limbs)
     }

@@ -1,6 +1,5 @@
 use cryp_alg::ff::*;
 
-
 pub type F5 = F<MontgomeryOperations<1, F5Params>>;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct F5Params;
@@ -15,15 +14,12 @@ impl MontParameters<1usize> for F5Params {
     const R2: [Self::Limb; 1] = [1];
 }
 
-
 pub type Fp25519Sol = F<GeneralReductionOperations<4, SolinasReduction<4, Fp25519Params>>>;
 pub type Fp25519Mont = F<MontgomeryOperations<4, Fp25519Params>>;
-
 
 /// Parameters for the prime field Fp25519
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Fp25519Params;
-
 
 impl MontParameters<4usize> for Fp25519Params {
     type Limb = u64;

@@ -1,31 +1,27 @@
 use cryp_alg::ff::*;
 use cryp_alg::{Bits, Bytes};
-use cryp_std::rand::seq::index::sample;
 use cryp_std::rand::thread_rng;
-use cryp_std::rand::Rng;
 use num_bigint::BigUint;
 
 mod test_fields;
 
-use test_fields::*;
+use test_fields::{Fp25519Mont, Fp25519Sol};
 
 #[test]
 fn test_fp25519_mont() {
-    FieldTests::<test_fields::Fp25519Mont>::run_all_tests(100);
-    PrimeFieldTests::<test_fields::Fp25519Mont>::run_all_tests(100);
+    FieldTests::<Fp25519Mont>::run_all_tests(100);
+    PrimeFieldTests::<Fp25519Mont>::run_all_tests(100);
 }
-
 
 #[test]
 fn test_fp25519_solinas() {
-    FieldTests::<test_fields::Fp25519Sol>::run_all_tests(100);
-    PrimeFieldTests::<test_fields::Fp25519Sol>::run_all_tests(100);
+    FieldTests::<Fp25519Sol>::run_all_tests(100);
+    PrimeFieldTests::<Fp25519Sol>::run_all_tests(100);
 }
 
 pub struct FieldTests<F: Field>(cryp_std::marker::PhantomData<F>);
 
 impl<F: Field> FieldTests<F> {
-
     /// Test that the additive and multiplicative identity is correct
     fn test_one_zero(num_tests: usize) {
         let one = F::one();
@@ -83,7 +79,7 @@ impl<F: Field> FieldTests<F> {
 pub struct PrimeFieldTests<F: PrimeField>(cryp_std::marker::PhantomData<F>);
 
 impl<F: PrimeField> PrimeFieldTests<F> {
-    fn test_modulus() {        
+    fn test_modulus() {
         assert_eq!(F::from_int(&F::MODULUS), F::zero());
     }
 
@@ -91,14 +87,12 @@ impl<F: PrimeField> PrimeFieldTests<F> {
         let mut rng = thread_rng();
 
         let to_bigint = |x: F| {
-            let bytes_be : Vec<u8> = Bytes::into_iter_be(&x.as_int()).collect();
+            let bytes_be: Vec<u8> = Bytes::into_iter_be(&x.as_int()).collect();
             BigUint::from_bytes_be(&bytes_be)
         };
 
-        let modulus = BigUint::from_bytes_be(
-            &Bytes::into_iter_be(&F::MODULUS)
-            .collect::<Vec<u8>>()
-        );
+        let modulus =
+            BigUint::from_bytes_be(&Bytes::into_iter_be(&F::MODULUS).collect::<Vec<u8>>());
 
         for _ in 0..num_tests {
             let a = F::rand(&mut rng);
@@ -111,7 +105,7 @@ impl<F: PrimeField> PrimeFieldTests<F> {
             let n_sum = to_bigint(a + b);
             assert_eq!(n_sum, (&n_a + &n_b) % &modulus);
 
-            // subtraction 
+            // subtraction
             let n_sub = to_bigint(a - b);
             assert_eq!(n_sub, (&n_a - &n_b) % &modulus);
 
@@ -122,12 +116,11 @@ impl<F: PrimeField> PrimeFieldTests<F> {
             // division
             if b != F::zero() {
                 let n_div = to_bigint(a / b);
-                assert_eq!((&n_a * n_div) % &modulus ,  &n_b % &modulus);
+                assert_eq!((&n_a * n_div) % &modulus, &n_b % &modulus);
             }
             // inverse and exponentiation
-            let mod_minus_two = BigUint::
-                iter_u32_digits(&(&modulus - &BigUint::from(2u8)))
-                .collect::<Vec<u32>>();
+            let mod_minus_two =
+                BigUint::iter_u32_digits(&(&modulus - &BigUint::from(2u8))).collect::<Vec<u32>>();
 
             assert_eq!(a.exp(&mod_minus_two) * a, F::one());
         }

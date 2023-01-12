@@ -1,6 +1,6 @@
 use super::coordinates::{Affine, ExtendedPoint};
 use super::ff::*;
-use  super::CurveOperations;
+use super::CurveOperations;
 
 mod a_minus_one_unified;
 mod general_unified;

@@ -113,7 +113,6 @@ impl<G: PrimeGroup, const N: usize> VCPublicParameters for PedersenPP<G, N> {
 // ----------------------------
 // Implement vector commitment with heap allocated vectors
 
-
 impl<G: PrimeGroup> VectorCommitment<Vec<G::ScalarField>> for PedersenVec<G> {
     type PublicParameters = PedersenVecPP<G>;
     type Commitment = G::Public;
@@ -125,7 +124,7 @@ impl<G: PrimeGroup> VectorCommitment<Vec<G::ScalarField>> for PedersenVec<G> {
         max_dim: usize,
     ) -> Result<Self::PublicParameters, Self::Error> {
         let group_elements = G::batch_generators(max_dim + 1, rng);
-        assert!(group_elements.len() == max_dim+ 1);
+        assert!(group_elements.len() == max_dim + 1);
 
         // Should succeed because of assert
         let g_vec = group_elements[0..max_dim].to_vec();
@@ -148,12 +147,9 @@ impl<G: PrimeGroup> VectorCommitment<Vec<G::ScalarField>> for PedersenVec<G> {
         // random field element, compute h^r
         // TODO: Error handling
 
-        let h_rand = rng
-            .map(G::ScalarField::rand)
-            .map(|r| pp.h * &r)
-            .map(|hr| {
+        let h_rand = rng.map(G::ScalarField::rand).map(|r| pp.h * &r).map(|hr| {
             hr.as_public()
-            .expect("The group element should be able to convert to public")
+                .expect("The group element should be able to convert to public")
         });
 
         let commit_g = G::msm(&pp.g_vec, input);
@@ -192,14 +188,11 @@ impl<G: PrimeGroup> VectorCommitment<Vec<G::ScalarField>> for PedersenVec<G> {
     }
 }
 
-
-
 impl<G: PrimeGroup> VCPublicParameters for PedersenVecPP<G> {
     fn max_dim(&self) -> usize {
         self.g_vec.len()
     }
 }
-
 
 // =============================
 
@@ -247,11 +240,13 @@ mod tests {
 
         let d = 50;
         pub type PedVec = PedersenVec<GroupEd25519>;
-        
+
         let pp = PedVec::setup(&mut rng, d).unwrap();
 
         let m = 10;
-        let input = (0..m).map(|_| ScalarEd25519::rand(&mut rng)).collect::<Vec<_>>();
+        let input = (0..m)
+            .map(|_| ScalarEd25519::rand(&mut rng))
+            .collect::<Vec<_>>();
         let (commitment, randomness) = PedVec::commit(&pp, &input, Some(&mut rng)).unwrap();
 
         assert_ne!(commitment, GroupEd25519::generator::<ThreadRng>(None));
