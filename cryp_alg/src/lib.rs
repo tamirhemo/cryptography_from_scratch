@@ -1,11 +1,4 @@
 //!
-//!
-//!
-//! * Fields -
-//!
-//!
-//!
-//!   
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -21,6 +14,7 @@ pub use groups::{Group, PrimeGroup};
 
 pub mod ff {
     pub use crate::biginteger::{Bits, Bytes, Integer};
+    pub use crate::{Zero, One};
     pub use crate::fields::{
         Field, GeneralReduction, GeneralReductionOperations, MontParameters, MontgomeryOperations,
         PrimeField, PrimeFieldOperations, SolinasParameters, SolinasReduction, F,
@@ -41,4 +35,17 @@ pub(crate) mod helper {
             .collect();
         BigUint::from_slice(v_u32.as_slice())
     }
+}
+
+
+
+// ===========================================================================
+// General trais
+
+pub trait Zero {
+    fn zero() -> Self;
+}
+
+pub trait One {
+    fn one() -> Self;
 }

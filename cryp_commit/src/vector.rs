@@ -1,4 +1,4 @@
-use cryp_alg::Field;
+use cryp_alg::ff::*;
 use cryp_std::hash::Hash;
 use cryp_std::rand::Rng;
 use cryp_std::vec::Vec;

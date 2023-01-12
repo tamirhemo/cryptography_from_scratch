@@ -32,7 +32,9 @@
 
 use cryp_std::{hash::Hash, rand::Rng, vec::Vec};
 
-use cryp_alg::{Field, PrimeField};
+use cryp_alg::ff;
+
+use ff::{Field, PrimeField};
 
 mod coordinates;
 mod primegroup;

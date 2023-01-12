@@ -14,10 +14,10 @@ use cryp_std::{
     iter,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     rand::UniformRand,
-    vec::Vec,
 };
 
 use crate::Integer;
+use super::{Zero, One};
 
 use zeroize::Zeroize;
 
@@ -46,6 +46,10 @@ pub trait Field:
     + Sized
     + Hash
     + UniformRand
+    + Zero
+    + One
+    + PartialEq
+    + Eq
     + Add<Self, Output = Self>
     + Sub<Self, Output = Self>
     + Mul<Self, Output = Self>
@@ -68,10 +72,6 @@ pub trait Field:
     + iter::Product<Self>
     + for<'a> iter::Product<&'a Self>
 {
-    fn zero() -> Self;
-
-    fn one() -> Self;
-
     /// Computes the multiplicative inverse, if it exists.
     fn inverse(&self) -> Option<Self>;
     /// Squares the field element in place.

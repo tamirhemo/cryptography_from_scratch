@@ -31,6 +31,7 @@
 //!  We can check that the given element is on the curve:
 //!
 //! ```rust
+//!   # use cryp_alg::ff::*;
 //!   # use cryp_ec::curves::edwards25519::*;
 //!   # use cryp_std::rand::thread_rng;
 //!   #

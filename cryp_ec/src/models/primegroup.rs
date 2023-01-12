@@ -1,12 +1,16 @@
-use super::*;
 use core::borrow::Borrow;
 use cryp_alg::{Group, PrimeGroup};
 use cryp_std::{
     fmt::{Debug, Display},
     hash::Hash,
     iter,
+    rand::Rng,
     ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+    vec::Vec
 };
+
+use super::{CurveOperations, scalar_mul};
+use super::ff::*;
 
 mod subgroup;
 

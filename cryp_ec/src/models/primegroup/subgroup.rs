@@ -1,4 +1,5 @@
 use super::*;
+use crate::models::Coordinates;
 
 /// An interface for a prime order subgroup of an elliptic curve.
 ///
