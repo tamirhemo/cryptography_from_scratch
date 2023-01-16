@@ -1,3 +1,7 @@
+pub(crate) mod montgomery;
+pub(crate) mod general_reduction;
+pub(crate) mod solinas;
+
 use crate::{biginteger::Bits, One, Zero};
 
 use super::{Field, Integer, PrimeField};
@@ -98,6 +102,9 @@ pub trait PrimeFieldOperations: 'static + Debug {
     }
 
     /// The multiplicative inverse of an element, if exists
+    /// 
+    /// The default implementation is based on Fermat's little theorem. A more
+    /// efficient implementation may be provided by the user.
     fn inverse(element: &Self::BigInt) -> Option<Self::BigInt> {
         let mut modulus_minus_two = Self::one();
         Self::add_assign(&mut modulus_minus_two, &Self::one());

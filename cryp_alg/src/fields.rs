@@ -22,16 +22,12 @@ use crate::Integer;
 use zeroize::Zeroize;
 
 mod abstract_operations;
-mod general_reduction;
-mod montgomery;
-mod solinas;
+mod exponentiation;
 
 pub use abstract_operations::{PrimeFieldOperations, F};
-pub use general_reduction::{GeneralReduction, GeneralReductionOperations};
-pub use montgomery::{MontParameters, MontgomeryOperations};
-pub use solinas::{SolinasParameters, SolinasReduction};
-
-pub use general_reduction::*;
+pub use abstract_operations::general_reduction::{GeneralReduction, GeneralReductionOperations};
+pub use abstract_operations::montgomery::{MontParameters, MontgomeryOperations};
+pub use abstract_operations::solinas::{SolinasParameters, SolinasReduction};
 
 /// The interface for a field
 pub trait Field:
