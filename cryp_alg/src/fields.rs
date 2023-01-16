@@ -26,9 +26,6 @@ mod general_reduction;
 mod montgomery;
 mod solinas;
 
-#[cfg(test)]
-pub mod test_fields;
-
 pub use abstract_operations::{PrimeFieldOperations, F};
 pub use general_reduction::{GeneralReduction, GeneralReductionOperations};
 pub use montgomery::{MontParameters, MontgomeryOperations};

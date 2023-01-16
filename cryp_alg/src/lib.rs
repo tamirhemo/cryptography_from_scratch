@@ -23,9 +23,6 @@ pub mod ff {
     };
     pub use crate::{One, Zero};
     pub use cryp_std::rand::UniformRand;
-
-    #[cfg(test)]
-    pub use crate::fields::test_fields;
 }
 
 #[cfg(test)]
