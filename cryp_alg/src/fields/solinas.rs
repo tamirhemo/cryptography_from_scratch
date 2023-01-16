@@ -26,6 +26,7 @@ impl<const N: usize, P: SolinasParameters<N>> GeneralReduction<N> for SolinasRed
 
     const MODULUS: [Self::Limb; N] = P::MODULUS;
 
+    #[allow(non_snake_case)]
     fn reduction(element: &([Self::Limb; N], [Self::Limb; N])) -> [Self::Limb; N] {
         let (mut a_l, mut a_h) = (LimbInt::from(element.0), LimbInt::from(element.1));
 
