@@ -11,8 +11,14 @@ zeroize = { version = "1", default-features = false, features = ["zeroize_derive
 
 [dev-dependencies]
 num-bigint = "0.4"
+criterion = "0.3"
 
 [features]
 default = []
 std = ["cryp_std/std", "zeroize/std"]
 bigint = ["std"]
+
+
+[[bench]]
+name = "bench_fields"
+harness = false
