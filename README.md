@@ -10,7 +10,7 @@ The structure of the project is based on [Arkworks](https://github.com/arkworks-
 * `cryp_commit` - A library for commitment scheme priitives and applications.
 * `cry_std` - A wrapper around the standard library to handle dependencies and provide common infrastructure.
 
-## Basic usage
+## Basic Usage
 
 ### Finite Field Arithmetic 
 The cryp_alg crate provides a way to construct fields. 
