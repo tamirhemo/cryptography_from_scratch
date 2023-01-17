@@ -3,7 +3,7 @@
 An educational implementation of cryptographic primitives in Rust. 
 
 
-The structure of the project is based on the [Arkworks](https://github.com/arkworks-rs/) project.
+The structure of the project is based on [Arkworks](https://github.com/arkworks-rs/).
 
 * `cryp_alg` - A library for handeling algebraic structures and finite field arithmetic.
 * `cryp_ec` - A library for handeling elliptic curves.
@@ -65,7 +65,3 @@ We can also check that the group element has the correct order.
     assert_eq!(identity, g *&order);
     assert_ne!(identity, g*&(order-one));
 ```
-
-### Commitment Schemes
-
-Pedersen commitments are agnostic to the underlying group. To define a Pedersen commitment.
