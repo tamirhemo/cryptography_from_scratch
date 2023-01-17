@@ -1,6 +1,15 @@
-pub(crate) mod montgomery;
+
 pub(crate) mod general_reduction;
-pub(crate) mod solinas;
+pub(crate) mod arithmetic;
+pub(crate) mod exponentiation;
+pub(crate) mod inversion;
+
+
+pub use arithmetic::ArithmeticOperations;
+pub use inversion::Inversion;
+pub use exponentiation::Exponentiation;
+pub use general_reduction::GeneralReduction;
+
 
 use crate::{biginteger::Bits, One, Zero};
 
@@ -149,6 +158,14 @@ pub struct F<S: PrimeFieldOperations> {
     element: S::BigInt,
 }
 
+
+/// A struct representing a collection of custom operations on a field.
+#[derive(Debug, Clone, Copy)]
+pub struct Operations<A : ArithmeticOperations, E : Exponentiation<A>, I: Inversion<A>> {
+ _marker: cryp_std::marker::PhantomData<(A, E, I)>,
+}
+
+
 impl<S: PrimeFieldOperations> F<S> {
     /// Allows the assignment of a field element with specific limbs
     ///
@@ -207,6 +224,57 @@ impl<S: PrimeFieldOperations> PrimeField for F<S> {
 
     fn from_int(int: &Self::BigInteger) -> Self {
         Self::from_RAW_limbs(S::reduce(int))
+    }
+}
+
+
+impl<A : ArithmeticOperations, E : Exponentiation<A>, I: Inversion<A>> PrimeFieldOperations for Operations<A, E, I> {
+    type BigInt = A::BigInt;
+
+    const MODULUS: Self::BigInt = A::MODULUS;
+
+    fn zero() -> Self::BigInt {
+        A::zero()
+    }
+
+    fn one() -> Self::BigInt {
+        A::one()
+    }
+
+    fn as_int(element: &Self::BigInt) -> Self::BigInt {
+        A::as_int(element)
+    }
+
+    fn reduce(element: &Self::BigInt) -> Self::BigInt {
+        A::reduce(element)
+    }
+
+    fn is_zero(element: &Self::BigInt) -> bool {
+        A::is_zero(element)
+    }
+
+    fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self::BigInt {
+        A::rand(rng)
+    }
+
+    fn add_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
+        A::add_assign(lhs, other);
+    }
+
+    fn sub_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
+        A::sub_assign(lhs, other);
+    }
+
+    fn mul_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
+        A::mul_assign(lhs, other);
+    }
+
+    fn exp(element: &Self::BigInt, exp: &impl Integer) -> Self::BigInt {
+        E::exp(element, exp)
+    }
+
+    fn inverse(element: &Self::BigInt) -> Option<Self::BigInt> {
+        I::inverse(element)
     }
 }
 

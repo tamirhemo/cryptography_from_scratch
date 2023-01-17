@@ -1,4 +1,4 @@
-use super::general_reduction::{GeneralReduction, GeneralReductionOperations};
+use crate::ff::{GeneralReduction, GeneralReductionOperations};
 use crate::biginteger::{Limb, LimbInt};
 use cryp_std::fmt::Debug;
 

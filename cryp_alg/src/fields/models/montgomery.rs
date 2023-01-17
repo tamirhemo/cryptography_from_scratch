@@ -1,7 +1,7 @@
-use crate::biginteger::{Limb, LimbInt};
+use crate::{biginteger::{Limb, LimbInt}, fields::abstract_operations::ArithmeticOperations};
 use cryp_std::rand::{Rng, UniformRand};
 
-use super::PrimeFieldOperations;
+use crate::PrimeFieldOperations;
 use cryp_std::fmt::Debug;
 
 pub trait MontParameters<const N: usize>: 'static + Debug {
@@ -25,6 +25,9 @@ pub trait MontParameters<const N: usize>: 'static + Debug {
 pub struct MontgomeryOperations<const N: usize, P: MontParameters<N>> {
     _marker: cryp_std::marker::PhantomData<P>,
 }
+
+
+
 
 impl<const N: usize, P: MontParameters<N>> MontgomeryOperations<N, P> {
     /// Montgomery reduction
@@ -131,7 +134,7 @@ impl<const N: usize, P: MontParameters<N>> PrimeFieldOperations for MontgomeryOp
                 break;
             }
         }
-        Self::reduce(&res.into())
+        <Self as PrimeFieldOperations>::reduce(&res.into())
     }
 
     fn add_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
@@ -164,6 +167,53 @@ impl<const N: usize, P: MontParameters<N>> PrimeFieldOperations for MontgomeryOp
         *lhs = Self::montgomery_mul(&lhs, other)
     }
 }
+
+
+
+impl<const N: usize, P: MontParameters<N>> ArithmeticOperations for MontgomeryOperations<N, P> {
+    type BigInt = <Self as PrimeFieldOperations>::BigInt;
+    const MODULUS: Self::BigInt = <Self as PrimeFieldOperations>::MODULUS;
+
+    #[inline]
+    fn zero() -> Self::BigInt {
+        <Self as PrimeFieldOperations>::zero()
+    }
+
+    #[inline]
+    fn one() -> Self::BigInt {
+        <Self as PrimeFieldOperations>::one()
+    }
+
+    /// Checks if the element is zero.
+    fn is_zero(element: &Self::BigInt) -> bool {
+        <Self as PrimeFieldOperations>::is_zero(element)
+    }
+
+    fn as_int(element: &Self::BigInt) -> Self::BigInt {
+        <Self as PrimeFieldOperations>::as_int(element)
+    }
+
+    fn reduce(element: &Self::BigInt) -> Self::BigInt {
+        <Self as PrimeFieldOperations>::reduce(element)
+    }
+
+    fn rand<R: Rng + ?Sized>(rng: &mut R) -> Self::BigInt {
+        <Self as PrimeFieldOperations>::rand(rng)
+    }
+
+    fn add_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
+        <Self as PrimeFieldOperations>::add_assign(lhs, other)
+    }
+
+    fn sub_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
+        <Self as PrimeFieldOperations>::sub_assign(lhs, other)
+    }
+
+    fn mul_assign(lhs: &mut Self::BigInt, other: &Self::BigInt) {
+        *lhs = Self::montgomery_mul(&lhs, other)
+    }
+}
+
 
 // =================================================================================================
 
