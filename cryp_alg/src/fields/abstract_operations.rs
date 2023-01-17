@@ -62,9 +62,10 @@ pub trait PrimeFieldOperations: 'static + Debug {
         Self::is_zero(&res)
     }
 
-    /// Addition of two elements in place.
+    /// Addition of an element rhs to the element lhs in place.
     fn add_assign(lhs: &mut Self::BigInt, other: &Self::BigInt);
 
+    /// Subtraction of the element rhs to the element lhs in place.
     fn sub_assign(lhs: &mut Self::BigInt, other: &Self::BigInt);
 
     /// Negation of an element.
