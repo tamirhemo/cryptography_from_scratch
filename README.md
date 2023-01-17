@@ -1,5 +1,9 @@
-# Cryptography Primitives 
+# Cryptography from Scratch
 
+An educational implementation of cryptographic primitives in Rust. 
+
+
+The structure of the project is based on the [Arkworks](https://github.com/arkworks-rs/) project.
 
 * `cryp_alg` - A library for handeling algebraic structures and finite field arithmetic.
 * `cryp_ec` - A library for handeling elliptic curves.
