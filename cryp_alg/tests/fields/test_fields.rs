@@ -24,6 +24,7 @@ pub struct Fp25519Params;
 impl MontParameters<4usize> for Fp25519Params {
     type Limb = u64;
 
+    // p=  2^255-19 =  57896044618658097711785492504343953926634992332820282019728792003956564819949
     const MODULUS: [Self::Limb; 4] = [
         18446744073709551597,
         18446744073709551615,
@@ -31,9 +32,13 @@ impl MontParameters<4usize> for Fp25519Params {
         9223372036854775807,
     ];
 
+    // 2^256 mod p
     const R: [Self::Limb; 4] = [38, 0, 0, 0];
 
+    // R^2 mod p
     const R2: [Self::Limb; 4] = [1444, 0, 0, 0];
+
+    // -p^-1 mod 2^64
     const MP: Self::Limb = 9708812670373448219;
 }
 
@@ -48,5 +53,6 @@ impl SolinasParameters<4usize> for Fp25519Params {
         9223372036854775807,
     ];
 
+    // 2^256 mod (2^255-19)
     const C: [u64; 4] = [38, 0, 0, 0];
 }

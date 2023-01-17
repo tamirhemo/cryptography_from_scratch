@@ -13,11 +13,69 @@ The structure of the project is based on [Arkworks](https://github.com/arkworks-
 ## Basic usage
 
 ### Finite Field Arithmetic 
-The cryp_alg crate provides a way to construct fields.
+The cryp_alg crate provides a way to construct fields. 
 
+For example, we can construct the prime field with size `2^255 - 19` and using Montgomery representation as follows. 
+
+First, to include all the necessary traits and functions, we need to import the following:
 ```rust
 use cryp_alg::ff::*;
+```
+We can encode the necessary parameters for Montgomery representation in a struct that implements the `MontParameters` trait.
+```rust
+/// Parameters for the prime field Fp25519
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Fp25519Params;
 
+impl MontParameters<4usize> for Fp25519Params {
+    type Limb = u64;
+
+    // p=  2^255-19 =  57896044618658097711785492504343953926634992332820282019728792003956564819949
+    const MODULUS: [Self::Limb; 4] = [
+        18446744073709551597,
+        18446744073709551615,
+        18446744073709551615,
+        9223372036854775807,
+    ];
+
+    // 2^256 mod p
+    const R: [Self::Limb; 4] = [38, 0, 0, 0];
+
+    // R^2 mod p
+    const R2: [Self::Limb; 4] = [1444, 0, 0, 0];
+
+    // -p^-1 mod 2^64
+    const MP: Self::Limb = 9708812670373448219;
+}
+
+```
+Then, we can construct the field as follows:
+```rust
+pub type Fp25519Mont = F<MontgomeryOperations<4, Fp25519Params>>;
+```
+
+For the prime `2^255 - 19`, there is a more efficient reduction algorithm by noting that `2^256 = 38 mod p`.  We can use this directly using the `Solinas` reduction algorithm.  We can encode the necessary parameters for Solinas representation by implementing the `SolinasParameters` trait.
+
+```rust
+impl SolinasParameters<4usize> for Fp25519Params {
+    type Limb = u64;
+
+    // 2^255-19 =  57896044618658097711785492504343953926634992332820282019728792003956564819949
+    const MODULUS: [Self::Limb; 4] = [
+        18446744073709551597,
+        18446744073709551615,
+        18446744073709551615,
+        9223372036854775807,
+    ];
+
+    // 2^256 mod (2^255-19)
+    const C: [u64; 4] = [38, 0, 0, 0];
+}
+```rust
+
+Then the field can be constructed in a similar way:
+```rust
+pub type Fp25519Sol = F<GeneralReductionOperations<4, SolinasReduction<4, Fp25519Params>>>;
 ```
 
 ### Elliptic curves
