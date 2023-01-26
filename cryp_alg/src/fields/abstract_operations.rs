@@ -113,8 +113,8 @@ pub trait PrimeFieldOperations: 'static + Debug {
 
     /// The multiplicative inverse of an element, if exists
     /// 
-    /// The default implementation is based on Fermat's little theorem. A more
-    /// efficient implementation may be provided by the user.
+    /// The default implementation is based on Fermat's little theorem. 
+    /// TODO: replace with binary GCD.
     fn inverse(element: &Self::BigInt) -> Option<Self::BigInt> {
         let mut modulus_minus_two = Self::one();
         Self::add_assign(&mut modulus_minus_two, &Self::one());

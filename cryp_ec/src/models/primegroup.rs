@@ -223,7 +223,7 @@ impl<P: PrimeGroupConfig> Eq for PublicEC<P> {}
 impl<P: PrimeGroupConfig> Clone for PublicEC<P> {
     fn clone(&self) -> Self {
         Self {
-            point: self.point.clone(),
+            point: self.point,
         }
     }
 }
